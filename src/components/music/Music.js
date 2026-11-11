@@ -108,6 +108,7 @@ const MusicBrowse = ({ profile, title, musicFeed, ...rest }) => {
                 <div className={css.results}>
                     <ContentGridItems
                         type='music'
+                        mode='wide'
                         contentList={contentList}
                         load={onLoad}
                         onSelect={setLocalContent}
@@ -115,11 +116,12 @@ const MusicBrowse = ({ profile, title, musicFeed, ...rest }) => {
                 </div>
             }
             <div className={css.header}>
-                <h1 className={css.title}>{title}</h1>
-                <Input placeholder={$L('Search')}
+                <Input className={css.search}
+                    aria-label={title}
+                    placeholder={$L('Search')}
                     value={query}
                     onChange={onSearch}
-                    iconAfter="search" />
+                    iconBefore='search' />
             </div>
         </div>
     )

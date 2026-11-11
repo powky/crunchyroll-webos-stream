@@ -113,7 +113,7 @@ const HomeFeedItem = ({ feed, index, ...rest }) => (
  * @param {String} obj.className
  */
 const HomeFeedRow = ({ profile, cellId, itemSize, feedRow, rowInfo, style, className, ...rest }) => {
-    const { feedType, feedId, fakeItem, setContent, homeFeedType } = rowInfo  // has to separte to avoid recall
+    const { feedType, feedId, fakeItem, setContent, onRowData, homeFeedType } = rowInfo  // has to separte to avoid recall
     // to keep index after go back, key has to be same in each row
     const { navigateContent, viewBackup, viewBackupRef } = useNavigateContent(`homeFeedRow-${feedType}-${feedId}`)
     /** @type {[import('../../hooks/homefeedWorker').FeedItemType, Function]} */
@@ -134,7 +134,7 @@ const HomeFeedRow = ({ profile, cellId, itemSize, feedRow, rowInfo, style, class
     const selectElement = useCallback((ev) => {
         const index = parseInt(ev.target.dataset.index)
         if (feedData.id !== 'fake_item') {
-            setContent(feedData.items[index], feedRow.index)
+            setContent(feedData.items[index], feedRow.index, index)
         } else {
             setContent(null, feedRow.index)
         }
@@ -229,9 +229,12 @@ const HomeFeedRow = ({ profile, cellId, itemSize, feedRow, rowInfo, style, class
         loadData().then(newFeedItem => {
             if (currentIndex.current === feedRow.index) {
                 setFeedData(newFeedItem)
+                if (newFeedItem.id !== 'fake_item') {
+                    onRowData(feedRow.index, newFeedItem.items)
+                }
             }
         })
-    }, [profile, feedRow, feedType, homeFeedType, feedId, fakeItem])
+    }, [profile, feedRow, feedType, homeFeedType, feedId, fakeItem, onRowData])
 
     return (
         <div className={newClassName} style={newStyle} {...rest}>
@@ -280,6 +283,7 @@ HomeFeedRow.propTypes = {
         feedType: PropTypes.oneOf(['home', 'music']),
         fakeItem: PropTypes.object.isRequired,
         setContent: PropTypes.func.isRequired,
+        onRowData: PropTypes.func.isRequired,
         homeFeedType: PropTypes.oneOf(['legacy', 'new']).isRequired,
     })
 }

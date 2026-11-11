@@ -9,8 +9,9 @@ import Backdrop from '../ui/Backdrop'
 import HeroInfo from '../ui/HeroInfo'
 import { SkeletonHero } from '../ui/Skeleton'
 import { pickBackdrop, pickHeroBackdrop, pickLogo } from '../ui/images'
+import { preload } from '../ui/preload'
 import { getFakeFeedItem } from '../../hooks/homefeedWorker'
-import { getArtContent } from '../../hooks/seriesArt'
+import { getArtContent, getKnownArt, prefetchArt } from '../../hooks/seriesArt'
 import { useViewBackup } from '../../hooks/viewBackup'
 import { $L } from '../../hooks/language'
 import { getDuration } from '../../utils'
@@ -20,7 +21,33 @@ import css from './Feed.module.less'
 
 
 /** the hero follows the focus once it settles, so moving along a row doesn't redraw it on every press */
-const SETTLE_MS = 350
+const SETTLE_MS = 250
+/** home art size: 1440p, the home art changes with the focus, and a 4K texture upload stalls this TV's GPU */
+const HERO_WIDTH = 2560
+/** the hero's own picture gets the network first; then what's around it */
+const PRELOAD_AFTER_MS = 700
+/** of what's around, how many backdrops to keep decoded: right, left and below */
+const DECODED_AROUND = 3
+
+/**
+ * What the focus can reach in one or two presses, nearest first: right and left, the rows below and above, then
+ * one further along the row
+ * @param {Object<Number, Array<Object>>} rows loaded rows by index
+ * @param {Number} rowIndex
+ * @param {Number} columnIndex
+ * @returns {Array<Object>}
+ */
+const getAround = (rows, rowIndex, columnIndex) => {
+    const at = (r, c) => {
+        const items = rows[r]
+        return items && items.length ? items[Math.max(0, Math.min(c, items.length - 1))] : null
+    }
+    return [
+        at(rowIndex, columnIndex + 1), at(rowIndex, columnIndex - 1),
+        at(rowIndex + 1, columnIndex), at(rowIndex - 1, columnIndex),
+        at(rowIndex, columnIndex + 2), at(rowIndex + 1, columnIndex + 1), at(rowIndex, columnIndex - 2),
+    ].filter(Boolean)
+}
 
 /**
  * Progress line under the hero of something half watched
@@ -48,7 +75,8 @@ const Resume = ({ content }) => {
 
 /**
  * Artwork and text of the focused item. Holds its own state: the shelves hand it the focused content through
- * `setterRef`, so a key press re-renders nothing but this, and only once the focus has settled.
+ * `setterRef`, so a key press re-renders nothing but this, and only once the focus has settled. Then the art of what's
+ * around it downloads, so the next hero shows sharp at once.
  * @param {Object} obj
  * @param {{current: Function}} obj.setterRef
  */
@@ -63,11 +91,14 @@ const HeroArea = ({ setterRef }) => {
     const shownRef = useRef(false)
     /** @type {{current: Object}} */
     const wantedRef = useRef(null)
+    /** @type {{current: Number}} */
+    const preloadTimerRef = useRef(null)
 
     useEffect(() => {
-        setterRef.current = (newContent) => {
+        setterRef.current = (newContent, around = []) => {
             wantedRef.current = newContent
             clearTimeout(timerRef.current)
+            clearTimeout(preloadTimerRef.current)
             timerRef.current = setTimeout(() => {
                 shownRef.current = true
                 getArtContent(profile, newContent).then(artContent => {
@@ -75,10 +106,26 @@ const HeroArea = ({ setterRef }) => {
                         setHero({ content: newContent, art: artContent })
                     }
                 })
+                preloadTimerRef.current = setTimeout(() => {
+                    const urls = []
+                    const toDecode = []
+                    around.forEach((item, index) => {
+                        const itemArt = getKnownArt(profile, item)
+                        const backdrop = itemArt && pickHeroBackdrop(itemArt, HERO_WIDTH)
+                        if (backdrop) {
+                            urls.push(backdrop, pickLogo(itemArt))
+                            if (index < DECODED_AROUND) {
+                                toDecode.push(backdrop)
+                            }
+                        }
+                    })
+                    preload(urls, toDecode)
+                }, PRELOAD_AFTER_MS)
             }, shownRef.current ? SETTLE_MS : 0)
         }
         return () => {
             clearTimeout(timerRef.current)
+            clearTimeout(preloadTimerRef.current)
             setterRef.current = null
         }
     }, [setterRef, profile])
@@ -86,8 +133,7 @@ const HeroArea = ({ setterRef }) => {
     const { content, art } = hero
     return (
         <>
-            {/* 1440p here: the home art changes with the focus, and a 4K texture upload stalls this TV's GPU */}
-            <Backdrop src={pickHeroBackdrop(art, 2560) || pickBackdrop(content)} preview={pickHeroBackdrop(art, 960)} fullDelay={1200}
+            <Backdrop src={pickHeroBackdrop(art, HERO_WIDTH) || pickBackdrop(content)} preview={pickHeroBackdrop(art, 960)}
                 variant='home' />
             <div className={css.hero}>
                 {content &&
@@ -121,6 +167,10 @@ const HomeFeed = ({ profile, homeFeed, feedType, className, ...rest2 }) => {
     const itemHeigth = ri.scale(ROW_HEIGHT)
     /** @type {Object} */
     const fakeItem = useMemo(getFakeFeedItem, [])
+    /** @type {{current: Object<Number, Array<Object>>}} rows loaded so far, to know what's around the focus */
+    const rowsRef = useRef({})
+
+    useEffect(() => { rowsRef.current = {} }, [homeFeed.id])
 
     /** @type {Function} */
     const renderRow = useCallback(({ index, ...rest }) => (
@@ -131,12 +181,18 @@ const HomeFeed = ({ profile, homeFeed, feedType, className, ...rest2 }) => {
     ), [feedType, homeFeed])
 
     /** @type {Function} */
-    const setContent = useCallback((content, rowIndex) => {
+    const setContent = useCallback((content, rowIndex, columnIndex = 0) => {
         viewBackupRef.current = { rowIndex }
         if (heroSetterRef.current) {
-            heroSetterRef.current(content)
+            heroSetterRef.current(content, getAround(rowsRef.current, rowIndex, columnIndex))
         }
     }, [viewBackupRef])
+
+    /** a row's cards are in: fetch their keyart (one request per row), so their heroes need no request later */
+    const onRowData = useCallback((rowIndex, items) => {
+        rowsRef.current[rowIndex] = items
+        prefetchArt(profile, items)
+    }, [profile])
 
     const childProps = useMemo(() => ({
         profile,
@@ -148,9 +204,10 @@ const HomeFeed = ({ profile, homeFeed, feedType, className, ...rest2 }) => {
             feedType,
             fakeItem,
             setContent,
+            onRowData,
             homeFeedType: homeFeed.type,
         }
-    }), [profile, itemHeigth, homeFeed, feedType, fakeItem, setContent])
+    }), [profile, itemHeigth, homeFeed, feedType, fakeItem, setContent, onRowData])
 
     useEffect(() => {
         const interval = setInterval(() => {

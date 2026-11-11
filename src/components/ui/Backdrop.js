@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
 
+import { isReady, markReady } from './preload'
 import css from './Backdrop.module.less'
 
 
@@ -13,7 +14,8 @@ import css from './Backdrop.module.less'
  * painted once.
  * @param {Object} obj
  * @param {String} [obj.src] picture to show
- * @param {String} [obj.preview] a small version of it, shown first while the big one downloads (4K art takes a while)
+ * @param {String} [obj.preview] a small version of it, shown first while the big one downloads (4K art takes a while);
+ *     skipped when the big one is already in the cache
  * @param {'home'|'detail'|'dim'} [obj.variant] which fades to paint over it
  * @param {Number} [obj.delay] wait this long for `src` to settle before loading it
  * @param {Number} [obj.fullDelay] with a preview: wait this long more before downloading the big one, so browsing
@@ -56,14 +58,17 @@ const Backdrop = ({ src, preview, variant = 'home', delay = 0, fullDelay = 0, cl
             loading.push(img)
             img.src = url
             if (img.decode) {
-                img.decode().then(done, done)
+                img.decode().then(() => {
+                    markReady(url)
+                    done()
+                }, done)
             } else {
                 img.onload = done
                 img.onerror = done
             }
         }
         const timer = setTimeout(() => {
-            const withPreview = preview && preview !== src
+            const withPreview = preview && preview !== src && !isReady(src)
             if (withPreview) {
                 load(preview, false)
             }

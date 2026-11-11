@@ -5,6 +5,7 @@ import { useRecoilValue } from 'recoil'
 import Backdrop from '../ui/Backdrop'
 import HeroInfo from '../ui/HeroInfo'
 import { pickBackdrop, pickHeroBackdrop, pickLogo } from '../ui/images'
+import { isReady } from '../ui/preload'
 import DetailActions from './DetailActions'
 import SeasonShelf from './SeasonShelf'
 import MovieShelf from './MovieShelf'
@@ -12,7 +13,7 @@ import ExtraShelf from './ExtraShelf'
 import LangSelector from './LangSelector'
 
 import { isPremiumState } from '../../recoilConfig'
-import { getArtContent } from '../../hooks/seriesArt'
+import { getArtContent, getKnownArt } from '../../hooks/seriesArt'
 import { useNavigateContent } from '../../hooks/navigate'
 import { isPlayable } from '../../utils'
 import css from './ContentDetail.module.less'
@@ -40,8 +41,11 @@ const ContentDetail = ({ profile, content }) => {
     const focusRef = useRef(viewBackup?.focus || 'play')
     /** @type {{current: Boolean}} a Back entry is pushed for the current extra row */
     const extraHistoryRef = useRef(false)
-    /** @type {[Object, Function]} the content with its keyart (hero background, title logo) */
-    const [art, setArt] = useState(content.images_localized ? content : null)
+    /** @type {[Object, Function]} the content with its keyart (hero background, title logo); null while unknown */
+    const [art, setArt] = useState(() => {
+        const known = getKnownArt(profile, content)
+        return known === undefined ? null : (known || content)
+    })
 
     useEffect(() => {
         let active = true
@@ -100,8 +104,10 @@ const ContentDetail = ({ profile, content }) => {
 
     return (
         <div className={css.ContentDetail}>
-            <Backdrop src={pickHeroBackdrop(art) || (art ? pickBackdrop(content) : null)} preview={pickHeroBackdrop(art, 960)}
-                fullDelay={300} variant={view === 'main' ? 'detail' : 'dim'} />
+            {/* 4K here (the page holds still); the home's 1440p of it is usually cached: shown meanwhile */}
+            <Backdrop src={pickHeroBackdrop(art) || (art ? pickBackdrop(content) : null)}
+                preview={isReady(pickHeroBackdrop(art, 2560)) ? pickHeroBackdrop(art, 2560) : pickHeroBackdrop(art, 960)}
+                fullDelay={600} variant={view === 'main' ? 'detail' : 'dim'} />
             {view === 'main' && <>
                 <div className={css.top}>
                     <HeroInfo content={content} size='detail' lines={3} logo={pickLogo(art)} logoPending={art === null} />

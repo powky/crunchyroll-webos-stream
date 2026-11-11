@@ -26,6 +26,7 @@ import Alert from '../Alert'
 import PopupMessage from '../Popup'
 import css from './Detail.module.less'
 import api from '../../api'
+import { useStoredImage } from '../../hooks/imageStore'
 import { SkeletonLines } from '../ui/Skeleton'
 
 
@@ -51,6 +52,7 @@ const useSaveProfileField = ({ setProfile, field }) => {
  * @param {Function} obj.onShowSelectAvatar
  */
 const ProfileInfo = ({ profile, setProfile, usernames, onShowSelectAvatar }) => {
+    const avatarSrc = useStoredImage(profile.avatar ? api.assets.getAvatarUrl(profile.avatar) : null)
     /** @type {[Boolean, Function]} */
     const [inputInvalid, setInputInvalid] = useState(false)
     /** @type {Function} */
@@ -87,7 +89,7 @@ const ProfileInfo = ({ profile, setProfile, usernames, onShowSelectAvatar }) => 
             <Heading size="small">{$L('Some info about your profile')}</Heading>
             <Field type='image'>
                 <Image
-                    src={api.assets.getAvatarUrl(profile.avatar)}
+                    src={avatarSrc}
                     alt={$L('Profile Picture')} />
                 <IconButton onClick={onShowSelectAvatar}>
                     edit
@@ -283,7 +285,7 @@ const AvatarGridBase = ({ open, avatars, setProfile, goBack, ...rest }) => {
             setAvatarsList(avatars[albumSelected].assets.map(item => {
                 return {
                     id: item.id,
-                    url: api.assets.getAvatarUrl(item.id),
+                    url: api.assets.getAvatarUrl(item.id, '170x170'),
                     title: avatars[albumSelected].title,
                     subTitle: item.title,
                 }

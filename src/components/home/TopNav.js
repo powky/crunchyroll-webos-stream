@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
 import PillButton from '../ui/PillButton'
 import logo from '../../../assets/img/crunchyroll-logo.svg'
 import api from '../../api'
+import { useStoredImage } from '../../hooks/imageStore'
 import kidImg from '../../../assets/img/child.jpg'
 import css from './TopNav.module.less'
 
@@ -43,7 +44,8 @@ const TopNavBase = ({ toolbarList, currentIndex, onClick, profile, ...rest }) =>
     const items = toolbarList.map((item, index) => ({ ...item, index }))
     const textTabs = items.filter(item => !ICON_TABS[item.key])
     const iconTabs = items.filter(item => ICON_TABS[item.key])
-    const avatar = profile && profile.avatar ? api.assets.getAvatarUrl(profile.avatar) : kidImg
+    const storedAvatar = useStoredImage(profile && profile.avatar ? api.assets.getAvatarUrl(profile.avatar) : null)
+    const avatar = profile && profile.avatar ? storedAvatar : kidImg
 
     return (
         <div className={css.topNav} {...rest}>

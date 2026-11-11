@@ -7,6 +7,7 @@ import { $L } from '../../hooks/language'
 import css from './Profile.module.less'
 import withNavigable from '../../hooks/navigable'
 import api from '../../api'
+import { useStoredImage } from '../../hooks/imageStore'
 import kidImg from '../../../assets/img/child.jpg'
 
 
@@ -21,13 +22,14 @@ const ImageNavigable = withNavigable(Image, css.profileFocus)
  * @param {Object} obj.rest
  */
 const Profile = ({ profile, onSelectProfile, onEditProfile, compRef, ...rest }) => {
+    const avatarSrc = useStoredImage(profile.avatar ? api.assets.getAvatarUrl(profile.avatar) : null)
 
     return (
         <div className={css.profile} {...rest}>
             <ImageNavigable
                 data-profile-id={profile.profile_id}
                 className={`cr-own ${css.profileImg}`}
-                src={profile.avatar && api.assets.getAvatarUrl(profile.avatar) || kidImg}
+                src={profile.avatar ? avatarSrc : kidImg}
                 alt={$L('Profile Picture')}
                 onClick={onSelectProfile}
                 ref={compRef} />

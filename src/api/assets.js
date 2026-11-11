@@ -36,9 +36,11 @@ export const getAvatarList = async (lang) => {
 /**
  * Return avatar url
  * @param {String} avatar
+ * @param {'510x510'|'170x170'} [size] the big one for a profile's own picture (sharp on a 4K screen), the small one
+ *     for long lists to pick from
  * @returns {String}
  */
-export const getAvatarUrl = avatar => `${config.urlStatic}/assets/avatar/170x170/${avatar}`
+export const getAvatarUrl = (avatar, size = '510x510') => `${config.urlStatic}/assets/avatar/${size}/${avatar}`
 
 
 /**

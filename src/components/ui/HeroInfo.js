@@ -42,15 +42,15 @@ export const getEyebrow = (content) => {
 }
 
 /**
- * "T1 · E5 — title" for an episode, the plain subtitle otherwise
+ * An episode's number ("T1 · E5") and name, apart
  * @param {Object} content
- * @returns {String}
+ * @returns {{number: String, name: String}}
  */
-export const getEpisodeLabel = (content) => {
+export const getEpisodeParts = (content) => {
     const metadata = content.episode_metadata || content
     const season = metadata.season_number != null ? metadata.season_number : metadata.season_sequence_number
     const episode = metadata.episode_number != null ? metadata.episode_number : metadata.episode
-    const name = content.subTitle || (content.episode_metadata ? content.title : null)
+    const name = content.subTitle || (content.episode_metadata ? content.title : null) || ''
     const parts = []
     if (season != null) {
         parts.push(`${$L('S')}${season}`)
@@ -58,11 +58,17 @@ export const getEpisodeLabel = (content) => {
     if (episode != null && episode !== '') {
         parts.push(`${$L('E')}${episode}`)
     }
-    let out = parts.join(' · ')
-    if (name) {
-        out = out ? `${out} — ${name}` : name
-    }
-    return out
+    return { number: parts.join(' · '), name }
+}
+
+/**
+ * "T1 · E5 — title" for an episode, on one line (cards)
+ * @param {Object} content
+ * @returns {String}
+ */
+export const getEpisodeLabel = (content) => {
+    const { number, name } = getEpisodeParts(content)
+    return number && name ? `${number} — ${name}` : number || name
 }
 
 /**
@@ -156,14 +162,22 @@ const HeroInfo = ({ content, size = 'home', eyebrow, lines = 3, logo, logoPendin
     const top = eyebrow != null ? eyebrow : getEyebrow(content)
     const isEpisode = content.type === 'episode'
     const title = content.title || content.name || ''
-    const subtitle = isEpisode ? getEpisodeLabel(content) : (content.subTitle || '')
+    const episode = isEpisode ? getEpisodeParts(content) : null
+    const subtitle = isEpisode ? episode.number : (content.subTitle || '')
     const description = content.description || ''
+    /** an episode's name (its number under it) takes a description line: the block keeps its height */
+    const descriptionLines = episode && episode.name ? Math.max(1, lines - 1) : lines
 
     return (
-        <div className={classNames(css.hero, css[size], className)}>
+        <div className={classNames(css.hero, css[size], { [css.withEpisode]: episode && episode.name }, className)}>
             {top && !logo && !logoPending && <div className={css.eyebrow}>{top}</div>}
             <Title logo={logo} logoPending={logoPending} title={title} />
-            {subtitle && subtitle !== title && <div className={css.subtitle}>{subtitle}</div>}
+            {episode && episode.name && episode.name !== title &&
+                <div className={css.episodeName}>{episode.name}</div>
+            }
+            {subtitle && subtitle !== title &&
+                <div className={classNames(css.subtitle, { [css.episodeNumber]: episode && episode.name })}>{subtitle}</div>
+            }
             {(maturity || parts.length > 0 || rating) &&
                 <div className={css.meta}>
                     {maturity && <span className={css.chip}>{maturity}</span>}
@@ -182,7 +196,7 @@ const HeroInfo = ({ content, size = 'home', eyebrow, lines = 3, logo, logoPendin
                 </div>
             }
             {description &&
-                <div className={css.description} style={{ WebkitLineClamp: lines }}>{description}</div>
+                <div className={css.description} style={{ WebkitLineClamp: descriptionLines }}>{description}</div>
             }
             {children}
         </div>

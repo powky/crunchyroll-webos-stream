@@ -47,6 +47,15 @@
 	object-position: left bottom;
 }
 
+// on the home hero an episode's name takes a line more: the logo gives it back, the hero keeps its height
+.home.withEpisode .logoTitle {
+	height: 130px;
+}
+
+.home.withEpisode .title {
+	font-size: 60px;
+}
+
 .detail .logoTitle {
 	height: 190px;
 }
@@ -70,6 +79,24 @@
 	font-weight: 600;
 	letter-spacing: -0.015em;
 	.cr-ellipsis();
+}
+
+// an episode's name, whole on up to two lines, with its number under it
+.episodeName {
+	max-width: 900px;
+	margin-top: 12px;
+	color: @cr-text;
+	font-size: 30px;
+	font-weight: 650;
+	line-height: 1.25;
+	letter-spacing: -0.015em;
+	.cr-clamp(2);
+}
+
+.subtitle.episodeNumber {
+	margin-top: 4px;
+	color: @cr-muted;
+	font-size: 24px;
 }
 
 .meta {
@@ -135,6 +162,10 @@
 	.subtitle {
 		margin-top: 8px;
 		font-size: 24px;
+	}
+
+	.episodeName {
+		font-size: 25px;
 	}
 
 	.meta {

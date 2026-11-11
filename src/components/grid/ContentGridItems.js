@@ -34,8 +34,11 @@ const ContentGridItems = ({ type, contentList, onSelect, load, autoScroll = true
     const scrollToRef = useRef(null)
     /** @type {{current: Number}} */
     const rowIndexRef = useRef(viewBackup?.rowIndex || 0)
-    /** artwork width (wide ones as on the home rows); cells add the card's focus margin and two lines of text */
-    const cardWidth = mode === 'tall' ? 232 : 384
+    /**
+     * artwork width; cells add the card's focus margin and two lines of text. Wide cards fill four columns of a page
+     * exactly (1872 px between the side margins: 4 x (420 + 2 x 24)), so both sides keep the same margin.
+     */
+    const cardWidth = mode === 'tall' ? 232 : 420
     /** @type {[Number, Number]} */
     const [itemHeight, itemWidth] = useMemo(() => {
         return [ri.scale(CARD_LIFT + cardHeight(cardWidth, mode) + 80), ri.scale(cardWidth + 2 * CARD_LIFT)]

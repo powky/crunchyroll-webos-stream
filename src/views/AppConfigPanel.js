@@ -16,6 +16,7 @@ import { initCache } from '../hooks/customFetch'
 import { syncFonts, getFonts } from '../hooks/fonts'
 import { currentProfileState, uiLanguageState } from '../recoilConfig'
 import api from '../api'
+import { clearSeriesArt } from '../hooks/seriesArt'
 
 /** UI languages the app has strings for (resources/), named in their own language */
 const UI_LANGUAGES = [
@@ -77,13 +78,26 @@ const AppConfigPanel = ({ noButtons, ...rest }) => {
     }, [saveCacheField])
 
     const saveContentLangField = useSaveOneProfileField({ profile, setProfile, field: 'preferred_communication_language' })
-    const saveAudioLang = useSaveOneProfileField({ profile, setProfile, field: 'preferred_content_audio_language' })
-    const saveSubtitleLang = useSaveOneProfileField({ profile, setProfile, field: 'preferred_content_subtitle_language' })
+    const saveAudioLangField = useSaveOneProfileField({ profile, setProfile, field: 'preferred_content_audio_language' })
+    const saveSubtitleLangField = useSaveOneProfileField({ profile, setProfile, field: 'preferred_content_subtitle_language' })
+    /** a profile field is saved on Crunchyroll's side: a failure is shown, not left to crash the app */
+    const showSaveError = useCallback(err => {
+        setMessage({ type: 'error', message: (err && err.message) || $L('An error occurred') })
+        setTimeout(() => setMessage(null), 3000)
+    }, [])
     /** titles and synopses come in this language: what's cached was fetched in the old one */
     const saveContentLang = useCallback(value => {
-        api.utils.clearCache()
-        return saveContentLangField(value)
-    }, [saveContentLangField])
+        saveContentLangField(value).then(() => {
+            api.utils.clearCache()
+            clearSeriesArt()
+        }).catch(showSaveError)
+    }, [saveContentLangField, showSaveError])
+    const saveAudioLang = useCallback(value => {
+        saveAudioLangField(value).catch(showSaveError)
+    }, [saveAudioLangField, showSaveError])
+    const saveSubtitleLang = useCallback(value => {
+        saveSubtitleLangField(value).catch(showSaveError)
+    }, [saveSubtitleLangField, showSaveError])
 
     const doSyncFonts = useCallback(async () => {
         setLoadingFonts(true)

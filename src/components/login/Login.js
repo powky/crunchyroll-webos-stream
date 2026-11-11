@@ -5,12 +5,12 @@ import Input from '@enact/moonstone/Input'
 import Button from '@enact/moonstone/Button'
 import Heading from '@enact/moonstone/Heading'
 import Icon from '@enact/moonstone/Icon'
-import Spinner from '@enact/moonstone/Spinner'
 import PropTypes from 'prop-types'
 import { config, localStore } from 'crunchyroll-js-api'
 import QRCode from 'react-qr-code'
 
 import css from './Login.module.less'
+import { Bone, Skeleton, SkeletonLines } from '../ui/Skeleton'
 import { DevBtn, AppConfigBtn } from '../Buttons'
 import Field from '../Field'
 import { $L } from '../../hooks/language'
@@ -26,7 +26,7 @@ export const LoginWithCode = ({ deviceCode, ...rest }) => {
     return (
         <Column className={css.loginForm} {...rest}>
             {!deviceCode &&
-                <Spinner />
+                <SkeletonLines widths={[360, 560, 300, 420]} height={30} gap={28} />
             }
             {deviceCode && <>
                 <Heading size='small'>{$L('Use this code to login')}</Heading>
@@ -59,7 +59,10 @@ export const LoginWithQR = ({ deviceCode, ...rest }) => {
     return (
         <Column className={css.loginForm} {...rest}>
             {!deviceCode &&
-                <Spinner />
+                <Skeleton className={css.qrSkeleton}>
+                    <Bone w={320} h={30} r={8} />
+                    <Bone w={360} h={360} r={20} style={{ marginTop: 28 }} />
+                </Skeleton>
             }
             {deviceCode && <>
                 <Heading size='small'>{$L('Scan qr code to login')}</Heading>
@@ -150,7 +153,12 @@ export const LoginWithEmail = ({ autoLogin, makeLogin, setErrorMessage, ...rest 
     return (
         <Column className={css.loginForm} {...rest}>
             {loading &&
-                <Spinner />
+                <Skeleton className={css.qrSkeleton}>
+                    <Bone w={420} h={30} r={8} />
+                    <Bone w={620} h={84} r={12} style={{ marginTop: 28 }} />
+                    <Bone w={620} h={84} r={12} style={{ marginTop: 18 }} />
+                    <Bone w={240} h={64} r={64} style={{ marginTop: 28 }} />
+                </Skeleton>
             }
             {!loading && <>
                 <Heading size='small'>{$L('Use your email and password')}</Heading>

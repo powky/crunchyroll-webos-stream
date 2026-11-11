@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { Row } from '@enact/ui/Layout'
 import { Panel, Header } from '@enact/moonstone/Panels'
 import Heading from '@enact/moonstone/Heading'
-import Spinner from '@enact/moonstone/Spinner'
 
 import { useRecoilValue } from 'recoil'
 
@@ -13,6 +12,7 @@ import { ContactMeBtn, LogoutBtn, AppConfigBtn } from '../components/Buttons'
 import { currentProfileState } from '../recoilConfig'
 import { useMapLang, $L } from '../hooks/language'
 import api from '../api'
+import { SkeletonLines } from '../components/ui/Skeleton'
 
 /**
  * @param {Array<import('crunchyroll-js-api').Types.AssesItem} plist
@@ -104,7 +104,7 @@ const ProfileEditPanel = ({ ...rest }) => {
             </Row>
             {loading ?
                 <Row align='center center'>
-                    <Spinner />
+                    <SkeletonLines widths={[520, 520, 520, 360]} height={84} gap={22} />
                 </Row>
                 :
                 <ProfileDetail

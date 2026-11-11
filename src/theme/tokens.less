@@ -20,6 +20,14 @@
 @cr-lift: 24px;  // room around a card for its focus lift and ring (Card.js CARD_LIFT)
 @cr-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 
+// tvOS-like frosted material: blurs what's behind (artwork). Use it over pictures only: on a flat background it costs
+// GPU time for nothing.
+.cr-glass(@tint: rgba(48, 48, 56, 0.38); @blur: 26px) {
+	background: @tint;
+	-webkit-backdrop-filter: blur(@blur) saturate(1.6);
+	backdrop-filter: blur(@blur) saturate(1.6);
+}
+
 // everything that moves on focus keeps a permanent layer: creating or dropping one on a key press
 // repaints the whole screen underneath on this TV's GPU
 .cr-layer() {

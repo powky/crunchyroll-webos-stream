@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import Spotlight from '@enact/spotlight'
 import { Panel } from '@enact/moonstone/Panels'
-import Spinner from '@enact/moonstone/Spinner'
 import classNames from 'classnames'
 import { useSetRecoilState } from 'recoil'
 
@@ -10,6 +9,7 @@ import { $L } from '../hooks/language'
 import { currentProfileState, homeViewReadyState } from '../recoilConfig'
 import Profile from '../components/profile/Profile'
 import PillButton from '../components/ui/PillButton'
+import { Bone, Skeleton } from '../components/ui/Skeleton'
 import css from '../components/profile/Profile.module.less'
 import { ContactMeBtn, DevBtn, LogoutBtn, AppConfigBtn } from '../components/Buttons'
 import api from '../api'
@@ -127,9 +127,17 @@ const ProfilesPanel = ({ ...rest }) => {
                     </div>
                 </div>
                 :
-                <div className={css.loading}>
-                    <Spinner />
-                </div>
+                <Skeleton className={css.center}>
+                    <Bone w={620} h={60} r={12} />
+                    <div className={css.profiles}>
+                        {[0, 1, 2].map(i => (
+                            <div key={i} className={css.profile}>
+                                <Bone w={200} h={200} r='50%' />
+                                <Bone w={120} h={28} r={8} style={{ marginTop: 30 }} />
+                            </div>
+                        ))}
+                    </div>
+                </Skeleton>
             }
         </Panel>
     )

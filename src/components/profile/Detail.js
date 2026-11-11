@@ -12,7 +12,6 @@ import Image from '@enact/moonstone/Image'
 import Button from '@enact/moonstone/Button'
 import Icon from '@enact/moonstone/Icon'
 import IconButton from '@enact/moonstone/IconButton'
-import Spinner from '@enact/moonstone/Spinner'
 import { VirtualGridList } from '@enact/moonstone/VirtualList'
 import GridListImageItem from '@enact/moonstone/GridListImageItem'
 import PropTypes from 'prop-types'
@@ -27,6 +26,7 @@ import Alert from '../Alert'
 import PopupMessage from '../Popup'
 import css from './Detail.module.less'
 import api from '../../api'
+import { SkeletonLines } from '../ui/Skeleton'
 
 
 /**
@@ -453,7 +453,7 @@ const ProfileDetail = ({ profile: profileBase, audioLangs, subtitleLangs, conten
                             goBack={goBack} />
                     </>
                     :
-                    <Spinner />
+                    <SkeletonLines widths={[360, 360, 240]} height={64} gap={18} />
                 }
             </Row>
             <AvatarGrid

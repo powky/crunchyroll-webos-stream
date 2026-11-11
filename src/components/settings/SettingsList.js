@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Spotlight from '@enact/spotlight'
 import Spottable from '@enact/spotlight/Spottable'
-import Spinner from '@enact/moonstone/Spinner'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
 
 import Icon from '../ui/Icons'
+import { Bone, Skeleton } from '../ui/Skeleton'
 import Scroller from '../../patch/Scroller'
 import { useNavigate } from '../../hooks/navigate'
 import css from './SettingsList.module.less'
@@ -50,7 +50,7 @@ const Row = ({ row, ...rest }) => {
         <SpottableDiv className={classNames('cr-own', css.row)} role='button' {...rest}>
             {row.icon && <Icon name={row.icon} className={css.icon} />}
             <span className={css.label}>{row.label}</span>
-            {row.loading && <Spinner size='small' />}
+            {row.loading && <Skeleton><Bone w={140} h={22} r={8} /></Skeleton>}
             {!row.loading && right != null && <span className={css.value}>{right}</span>}
             {row.options && <Icon name='chevronRight' className={css.chevron} />}
         </SpottableDiv>

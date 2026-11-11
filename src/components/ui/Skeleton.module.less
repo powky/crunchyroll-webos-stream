@@ -1,0 +1,46 @@
+@import (reference) '../../theme/tokens.less';
+
+@keyframes pulse {
+	from {
+		opacity: 0.45;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+// opacity only, on the group's own layer: the blocks are painted once
+.skeleton {
+	animation: pulse 900ms ease-in-out infinite alternate;
+	will-change: opacity;
+}
+
+.bone {
+	flex: none;
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.cards {
+	display: flex;
+	flex-wrap: nowrap;
+	overflow: hidden;
+}
+
+.card {
+	flex: none;
+	box-sizing: border-box;
+}
+
+.grid {
+	overflow: hidden;
+
+	.cards + .cards {
+		margin-top: 24px;
+	}
+}
+
+.pills {
+	display: flex;
+	align-items: center;
+}

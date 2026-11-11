@@ -4,7 +4,7 @@ import { useRecoilValue } from 'recoil'
 
 import Backdrop from '../ui/Backdrop'
 import HeroInfo from '../ui/HeroInfo'
-import { pickBackdrop } from '../ui/images'
+import { pickBackdrop, pickHeroBackdrop, pickLogo } from '../ui/images'
 import DetailActions from './DetailActions'
 import SeasonShelf from './SeasonShelf'
 import MovieShelf from './MovieShelf'
@@ -12,6 +12,7 @@ import ExtraShelf from './ExtraShelf'
 import LangSelector from './LangSelector'
 
 import { isPremiumState } from '../../recoilConfig'
+import { getArtContent } from '../../hooks/seriesArt'
 import { useNavigateContent } from '../../hooks/navigate'
 import { isPlayable } from '../../utils'
 import css from './ContentDetail.module.less'
@@ -39,6 +40,14 @@ const ContentDetail = ({ profile, content }) => {
     const focusRef = useRef(viewBackup?.focus || 'play')
     /** @type {{current: Boolean}} a Back entry is pushed for the current extra row */
     const extraHistoryRef = useRef(false)
+    /** @type {[Object, Function]} the content with its keyart (hero background, title logo) */
+    const [art, setArt] = useState(content.images_localized ? content : null)
+
+    useEffect(() => {
+        let active = true
+        getArtContent(profile, content).then(found => active && setArt(found))
+        return () => { active = false }
+    }, [profile, content])
 
     /** the same button again (or Back) returns to the episodes */
     const showShelf = useCallback((name) => {
@@ -91,10 +100,11 @@ const ContentDetail = ({ profile, content }) => {
 
     return (
         <div className={css.ContentDetail}>
-            <Backdrop src={pickBackdrop(content)} variant={view === 'main' ? 'detail' : 'dim'} />
+            <Backdrop src={pickHeroBackdrop(art) || (art ? pickBackdrop(content) : null)} preview={pickHeroBackdrop(art, 960)}
+                fullDelay={300} variant={view === 'main' ? 'detail' : 'dim'} />
             {view === 'main' && <>
                 <div className={css.top}>
-                    <HeroInfo content={content} size='detail' lines={3} />
+                    <HeroInfo content={content} size='detail' lines={3} logo={pickLogo(art)} logoPending={art === null} />
                     <DetailActions
                         profile={profile}
                         content={content}
@@ -131,7 +141,7 @@ const ContentDetail = ({ profile, content }) => {
             </>}
             {view === 'audio' &&
                 <div className={css.audioPage}>
-                    <HeroInfo content={content} size='detail' lines={2} />
+                    <HeroInfo content={content} size='detail' lines={2} logo={pickLogo(art)} logoPending={art === null} />
                     <LangSelector profile={profile} content={content} />
                 </div>
             }

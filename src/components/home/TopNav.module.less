@@ -30,7 +30,8 @@
 	align-items: center;
 	padding: 6px 0 6px 6px;
 	border-radius: 999px;
-	background: rgba(28, 28, 32, 0.78);
+	// tinted, not blurred: a blur here re-renders on every crossfade of the artwork under it (measured: p95 17 -> 33 ms)
+	background: rgba(36, 36, 42, 0.62);
 }
 
 .right {

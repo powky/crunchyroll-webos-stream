@@ -1,6 +1,5 @@
 
 import { useCallback, useEffect, useRef, useMemo } from 'react'
-import Spinner from '@enact/moonstone/Spinner'
 import { VirtualGridList } from '@enact/moonstone/VirtualList'
 import ri from '@enact/ui/resolution'
 import DateFmt from 'ilib/lib/DateFmt'
@@ -9,6 +8,7 @@ import PropTypes from 'prop-types'
 
 import LoadingList from '../LoadingList'
 import Card, { cardHeight, CARD_LIFT } from '../ui/Card'
+import { CardBone, Skeleton, SkeletonGrid } from '../ui/Skeleton'
 import { pickImage } from '../ui/images'
 import { useViewBackup } from '../../hooks/viewBackup'
 
@@ -79,9 +79,9 @@ const ContentGridItems = ({ type, contentList, onSelect, load, autoScroll = true
                 load(index)
             }
             out = (
-                <div {...rest2} >
-                    <Spinner />
-                </div>
+                <Skeleton {...rest2}>
+                    <CardBone width={cardWidth} mode={mode} />
+                </Skeleton>
             )
         }
         return out
@@ -110,7 +110,8 @@ const ContentGridItems = ({ type, contentList, onSelect, load, autoScroll = true
         <LoadingList
             list={contentList}
             index={rowIndexRef.current}
-            scrollFn={scrollToRef.current}>
+            scrollFn={scrollToRef.current}
+            skeleton={<SkeletonGrid width={cardWidth} mode={mode} columns={mode === 'tall' ? 6 : 4} rows={2} />}>
             {contentList && contentList.length > 0 &&
                 <VirtualGridList {...rest}
                     dataSize={contentList.length}

@@ -55,3 +55,39 @@ export const pickBackdrop = (content) => {
 }
 
 export { emptyImg }
+
+/**
+ * A keyart picture from `images_localized` (the API's templated imgsrv links), at the size asked for
+ * @param {Object} content
+ * @param {String} key e.g. hero_background, content_logo_polychromatic
+ * @param {String} params imgsrv options, e.g. 'fit=cover,width=1920'
+ * @returns {String|null}
+ */
+export const localizedImage = (content, key, params) => {
+    const image = content && content.images_localized && content.images_localized[key]
+    if (!image || !image.url) {
+        return null
+    }
+    return image.url.replace('{:param}', `${params},format=auto,quality=85`)
+}
+
+/**
+ * Show art made for a hero (room for text on the left); null when the API has none
+ * @param {Object} content
+ * @param {Number} [width] 3840 by default: 4K for the TV's 2x screen; ask for a small one to show while that loads
+ * @returns {String|null}
+ */
+export const pickHeroBackdrop = (content, width = 3840) => {
+    const size = `fit=cover,width=${width},height=${Math.round(width * 9 / 16)}`
+    return localizedImage(content, 'hero_background', size) || localizedImage(content, 'tile_artwork', size)
+}
+
+/**
+ * The show's own title logo (transparent), in the profile's language when Crunchyroll has one
+ * @param {Object} content
+ * @returns {String|null}
+ */
+export const pickLogo = (content) => (
+    // trim=border crops the logo's transparent margins, so it lines up with the text under it
+    localizedImage(content, 'content_logo_polychromatic', 'fit=contain,width=1400,trim=border')
+)

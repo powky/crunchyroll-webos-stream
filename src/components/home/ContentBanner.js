@@ -4,7 +4,7 @@ import classNames from 'classnames'
 import { useRecoilValue } from 'recoil'
 
 import HeroInfo from '../ui/HeroInfo'
-import { pickImage } from '../ui/images'
+import { pickImage, pickLogo } from '../ui/images'
 import { currentProfileState } from '../../recoilConfig'
 import api from '../../api'
 import css from './ContentBanner.module.less'
@@ -74,7 +74,7 @@ const HomeContentBanner = ({ content, noCategory = false, noPoster = false, clas
         <div className={classNames(css.homeContentBanner, className)} {...rest}>
             <div className={css.text}>
                 {content &&
-                    <HeroInfo content={content} size='compact' lines={3}>
+                    <HeroInfo content={content} size='compact' lines={3} logo={pickLogo(content)}>
                         {categories.length > 0 && <div className={css.categories}>{categories.join(' · ')}</div>}
                     </HeroInfo>
                 }

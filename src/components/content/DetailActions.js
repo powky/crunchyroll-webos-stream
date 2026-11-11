@@ -1,9 +1,9 @@
 import { useEffect, useCallback, useState } from 'react'
 import Spotlight from '@enact/spotlight'
-import Spinner from '@enact/moonstone/Spinner'
 import PropTypes from 'prop-types'
 
 import PillButton from '../ui/PillButton'
+import { SkeletonPills } from '../ui/Skeleton'
 import PopupMessage from '../Popup'
 import { getProgress } from '../home/FeedRow'
 import { $L } from '../../hooks/language'
@@ -255,12 +255,12 @@ const DetailActions = ({ profile, content, setContent, shelf, onShelf, onAudio, 
 
     return (
         <div className={css.actionsBlock}>
-            {loading && <div className={css.actionsLoading}><Spinner size='small' /></div>}
+            {loading && <SkeletonPills className={css.actionsLoading} widths={[260, 0, 0, 0, 0, 0]} />}
             {!loading &&
                 <div className={css.actions}>
                     {nextContent &&
                         <div className={css.playWrap}>
-                            <PillButton id='detail-play' icon='play'
+                            <PillButton glass id='detail-play' icon='play'
                                 onClick={playNext}
                                 onFocus={clearHint}>
                                 {playLabel(nextContent)}
@@ -268,31 +268,31 @@ const DetailActions = ({ profile, content, setContent, shelf, onShelf, onAudio, 
                         </div>
                     }
                     {lastContent &&
-                        <PillButton icon='play' onClick={playLast} onFocus={clearHint}>
+                        <PillButton glass icon='play' onClick={playLast} onFocus={clearHint}>
                             {`${$L('Latest')} ${shortEpisode(lastContent)}`}
                         </PillButton>
                     }
-                    <PillButton round
+                    <PillButton glass round
                         icon={isInWatchlist ? 'check' : 'plus'}
                         aria-label={isInWatchlist ? $L('Remove from my list') : $L('Add to my list')}
                         onClick={toggleWatchlist}
                         onFocus={showHint} />
-                    <PillButton round icon='bubble'
+                    <PillButton glass round icon='bubble'
                         aria-label={$L('Audio and Subtitles')}
                         onClick={onAudio}
                         onFocus={showHint} />
-                    <PillButton round icon='grid'
+                    <PillButton glass round icon='grid'
                         aria-label={$L('Similar')}
                         selected={shelf === 'similar'}
                         onClick={showSimilar}
                         onFocus={showHint} />
-                    <PillButton round icon='note'
+                    <PillButton glass round icon='note'
                         aria-label={$L('Music')}
                         selected={shelf === 'music'}
                         onClick={showMusic}
                         onFocus={showHint} />
                     {content.type === 'series' &&
-                        <PillButton round icon='checkCircle'
+                        <PillButton glass round icon='checkCircle'
                             aria-label={$L('Mark as watched')}
                             onClick={markAsWatched}
                             onFocus={showHint} />

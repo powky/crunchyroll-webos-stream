@@ -7,11 +7,15 @@ import HomeFeedRow, { ROW_HEIGHT, getProgress } from './FeedRow'
 import VirtualListNested from '../../patch/VirtualListNested'
 import Backdrop from '../ui/Backdrop'
 import HeroInfo from '../ui/HeroInfo'
-import { pickBackdrop } from '../ui/images'
+import { SkeletonHero } from '../ui/Skeleton'
+import { pickBackdrop, pickHeroBackdrop, pickLogo } from '../ui/images'
 import { getFakeFeedItem } from '../../hooks/homefeedWorker'
+import { getArtContent } from '../../hooks/seriesArt'
 import { useViewBackup } from '../../hooks/viewBackup'
 import { $L } from '../../hooks/language'
 import { getDuration } from '../../utils'
+import { useRecoilValue } from 'recoil'
+import { currentProfileState } from '../../recoilConfig'
 import css from './Feed.module.less'
 
 
@@ -49,36 +53,49 @@ const Resume = ({ content }) => {
  * @param {{current: Function}} obj.setterRef
  */
 const HeroArea = ({ setterRef }) => {
-    /** @type {[Object, Function]} */
-    const [content, setContent] = useState(null)
+    /** @type {import('crunchyroll-js-api').Types.Profile} */
+    const profile = useRecoilValue(currentProfileState)
+    /** @type {[{content: Object, art: Object}, Function]} art: whose artwork and logo (an episode's series) */
+    const [hero, setHero] = useState({ content: null, art: null })
     /** @type {{current: Number}} */
     const timerRef = useRef(null)
     /** @type {{current: Boolean}} */
     const shownRef = useRef(false)
+    /** @type {{current: Object}} */
+    const wantedRef = useRef(null)
 
     useEffect(() => {
         setterRef.current = (newContent) => {
+            wantedRef.current = newContent
             clearTimeout(timerRef.current)
             timerRef.current = setTimeout(() => {
                 shownRef.current = true
-                setContent(newContent)
+                getArtContent(profile, newContent).then(artContent => {
+                    if (wantedRef.current === newContent) {
+                        setHero({ content: newContent, art: artContent })
+                    }
+                })
             }, shownRef.current ? SETTLE_MS : 0)
         }
         return () => {
             clearTimeout(timerRef.current)
             setterRef.current = null
         }
-    }, [setterRef])
+    }, [setterRef, profile])
 
+    const { content, art } = hero
     return (
         <>
-            <Backdrop src={pickBackdrop(content)} variant='home' />
+            {/* 1440p here: the home art changes with the focus, and a 4K texture upload stalls this TV's GPU */}
+            <Backdrop src={pickHeroBackdrop(art, 2560) || pickBackdrop(content)} preview={pickHeroBackdrop(art, 960)} fullDelay={1200}
+                variant='home' />
             <div className={css.hero}>
                 {content &&
-                    <HeroInfo content={content} lines={3}>
+                    <HeroInfo content={content} logo={pickLogo(art)} lines={3}>
                         <Resume content={content} />
                     </HeroInfo>
                 }
+                {!content && <SkeletonHero style={{ paddingTop: 40 }} />}
             </div>
         </>
     )

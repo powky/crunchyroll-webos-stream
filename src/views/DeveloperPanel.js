@@ -4,7 +4,6 @@ import { useState, useCallback, useRef } from 'react'
 import { Row, Cell } from '@enact/ui/Layout'
 import { Panel, Header } from '@enact/moonstone/Panels'
 import BodyText from '@enact/moonstone/BodyText'
-import Spinner from '@enact/moonstone/Spinner'
 import Button from '@enact/moonstone/Button'
 import ri from '@enact/ui/resolution'
 import { v4 as uuidv4 } from 'uuid'
@@ -13,6 +12,7 @@ import Scroller from '../patch/Scroller'
 import { $L } from '../hooks/language'
 import { serviceURL } from '../hooks/customFetch'
 import api from '../api'
+import { SkeletonLines } from '../components/ui/Skeleton'
 import utils from '../utils'
 
 /** @type {{webOS: import('webostvjs').WebOS}} */
@@ -194,7 +194,7 @@ const DeveloperPanel = (props) => {
             <Header title="Developer Options" hideLine />
             {loading ?
                 <Row align='center center'>
-                    <Spinner />
+                    <SkeletonLines widths={[640, 640, 640, 480]} height={60} gap={20} />
                 </Row>
                 :
                 <Row style={{ height: '100%' }}>

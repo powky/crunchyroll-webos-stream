@@ -15,6 +15,7 @@ import ContentInfo from './ContentInfo'
 import { ContactMeBtn, AppConfigBtn } from '../Buttons'
 import PopupMessage from '../Popup'
 import PillButton from '../ui/PillButton'
+import { Bone, Skeleton, SkeletonPills } from '../ui/Skeleton'
 import css from './Player.module.less'
 import { currentProfileState, playContentState } from '../../recoilConfig'
 import { useGetLanguage } from '../../hooks/language'
@@ -1133,6 +1134,27 @@ const Player = ({ ...rest }) => {
         }
     }, [profile, content, stream, audio, subtitle, setLoading, handleCrunchyError])
 
+    /** @type {[Boolean, Function]} the video is waiting for data after it started */
+    const [buffering, setBuffering] = useState(false)
+
+    useEffect(() => {  // buffering indicator, instead of moonstone's spinner
+        const video = !loading && document.querySelector('video')
+        if (!video) {
+            return
+        }
+        const onWaiting = () => setBuffering(true)
+        const onPlaying = () => setBuffering(false)
+        video.addEventListener('waiting', onWaiting)
+        video.addEventListener('playing', onPlaying)
+        video.addEventListener('canplay', onPlaying)
+        return () => {
+            video.removeEventListener('waiting', onWaiting)
+            video.removeEventListener('playing', onPlaying)
+            video.removeEventListener('canplay', onPlaying)
+            setBuffering(false)
+        }
+    }, [loading])
+
     useEffect(() => {  // set stream session
         if (stream === emptyStream) {
             setSession(null)
@@ -1283,6 +1305,7 @@ const Player = ({ ...rest }) => {
                 onPlay={onPlayPause}
                 jumpBy={jumpBy}
                 loading={loading}
+                noSpinner
                 ref={playerCompRef}
                 onControlsAvailable={onMediaControlShow}
                 noAutoPlay>
@@ -1294,6 +1317,17 @@ const Player = ({ ...rest }) => {
                     <rightComponents>{rightComponents}</rightComponents>
                 </MediaControls>
             </VideoPlayer>
+            {loading &&
+                <div className={css.loading}>
+                    {poster && <img className={css.loadingPoster} src={poster} alt='' />}
+                    <div className={css.loadingControls}>
+                        <div className={css.loadingTitle}>{title}</div>
+                        <Skeleton><Bone w='100%' h={9} r={9} /></Skeleton>
+                        <SkeletonPills className={css.loadingButtons} widths={[0, 0, 0, 0, 0]} height={72} />
+                    </div>
+                </div>
+            }
+            {!loading && buffering && <Skeleton className={css.buffering}><Bone w='100%' h={6} r={0} /></Skeleton>}
             <PillButton id="skip-button"
                 icon='skip'
                 className={css.skip}

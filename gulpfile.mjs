@@ -198,19 +198,19 @@ const APPEND_CSS = {
 }`,
     'ContextualPopupDecorator/ContextualPopup.module.css': `
 .contextualPopup:global(.moonstone) {
-  filter: drop-shadow(0 0.5rem 1.25rem rgba(0, 0, 0, 0.55));
+  filter: none;
 }
 .contextualPopup:global(.moonstone) .container {
-  background-color: #1f1f24;
-  border-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(36, 36, 42, 0.66);
+  -webkit-backdrop-filter: blur(1.25rem) saturate(1.6);
+  backdrop-filter: blur(1.25rem) saturate(1.6);
+  border-color: rgba(255, 255, 255, 0.1);
   border-radius: 1rem;
   padding: 0.5rem;
+  box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.45);
 }
-.contextualPopup:global(.moonstone) .arrow .arrowBorder {
-  fill: rgba(255, 255, 255, 0.08);
-}
-.contextualPopup:global(.moonstone) .arrow .arrowFill {
-  fill: #1f1f24;
+.contextualPopup:global(.moonstone) .arrow {
+  display: none;
 }`,
     'Popup/Popup.module.css': `
 .popup:global(.moonstone) {
@@ -290,7 +290,12 @@ function patchMoonstoneTheme() {
         } else if (file.endsWith('Input.module.css')) {
             fileContent = fileContent.replace(/border-radius: 0\.125rem;/g, 'border-radius: 0.5rem;')
         }
-        if (APPEND_CSS[file] && !fileContent.includes('/* crunchytheme */')) {
+        if (APPEND_CSS[file]) {
+            // replace what an earlier run appended, so changes to APPEND_CSS reach node_modules
+            const appended = fileContent.indexOf('\n/* crunchytheme */')
+            if (appended >= 0) {
+                fileContent = fileContent.slice(0, appended)
+            }
             fileContent += `\n/* crunchytheme */\n${APPEND_CSS[file]}\n`
         }
         if (file.endsWith('MoonstoneDecorator.module.css')) {

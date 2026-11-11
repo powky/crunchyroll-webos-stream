@@ -1,9 +1,8 @@
 
 import { useRef, useEffect } from 'react'
-import { Column } from '@enact/ui/Layout'
-import Spinner from '@enact/moonstone/Spinner'
-
 import PropTypes from 'prop-types'
+
+import { SkeletonCards } from './ui/Skeleton'
 
 import { $L } from '../hooks/language'
 import cssShared from './Share.module.less'
@@ -13,9 +12,10 @@ import cssShared from './Share.module.less'
  * @param {Array} [obj.list]
  * @param {Number} [obj.index]
  * @param {Fucntion} [obj.scrollFn]
+ * @param {React.ReactNode} [obj.skeleton] the shape of the list while it loads (a row of cards by default)
  * @param {React.ReactNode} [obj.children]
  */
-const LoadingList = ({ list, index, scrollFn, children }) => {
+const LoadingList = ({ list, index, scrollFn, skeleton, children }) => {
     /** @type {{current: HTMLDivElement}} */
     const containerRef = useRef(null)
     /** @type {{current: Number}} */
@@ -32,15 +32,9 @@ const LoadingList = ({ list, index, scrollFn, children }) => {
 
     return (
         <div className={cssShared.virtualListContainer} ref={containerRef}>
-            {!list &&
-                <Column align='center center' style={{ height: '100%', width: '100%' }}>
-                    <Spinner />
-                </Column>
-            }
+            {!list && (skeleton || <SkeletonCards width={384} />)}
             {list && list.length === 0 &&
-                <Column align='center center' style={{ height: '100%', width: '100%' }}>
-                    <h1>{$L('Empty')}</h1>
-                </Column>
+                <div className={cssShared.empty}>{$L('Empty')}</div>
             }
             {list && list.length > 0 &&
                 children
@@ -53,6 +47,7 @@ LoadingList.propTypes = {
     list: PropTypes.array,
     index: PropTypes.number,
     scrollFn: PropTypes.func,
+    skeleton: PropTypes.node,
     children: PropTypes.node
 }
 

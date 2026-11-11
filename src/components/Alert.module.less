@@ -2,7 +2,7 @@
 
 // tvOS-style alert: dark card in the middle, the page dimmed behind it
 .Alert {
-	background-color: rgba(0, 0, 0, 0.72);
+	background-color: rgba(0, 0, 0, 0.5);
 
 	.content {
 		position: fixed;
@@ -12,7 +12,7 @@
 		max-width: 900px;
 		padding: 48px 56px 40px;
 		border-radius: 28px;
-		background: #1f1f24;
+		.cr-glass(rgba(36, 36, 42, 0.62); 40px);
 		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
 		transform: translate(-50%, -50%);
 		font-family: @cr-font;

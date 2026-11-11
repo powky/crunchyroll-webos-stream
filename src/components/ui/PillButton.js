@@ -16,14 +16,16 @@ const SpottableDiv = Spottable('div')
  * @param {Boolean} [obj.small] shorter, for tabs and secondary actions
  * @param {Boolean} [obj.selected] the current tab
  * @param {Boolean} [obj.plain] no background at rest
+ * @param {Boolean} [obj.glass] frosted, for buttons sitting on artwork
  */
-const PillButton = ({ icon, round, small, selected, plain, className, children, ...rest }) => (
+const PillButton = ({ icon, round, small, selected, plain, glass, className, children, ...rest }) => (
     <SpottableDiv
         className={classNames('cr-own', css.pill, {
             [css.round]: round,
             [css.small]: small,
             [css.selected]: selected,
             [css.plain]: plain,
+            [css.glass]: glass,
             [css.disabled]: rest.disabled,
         }, className)}
         role='button'
@@ -39,6 +41,7 @@ PillButton.propTypes = {
     small: PropTypes.bool,
     selected: PropTypes.bool,
     plain: PropTypes.bool,
+    glass: PropTypes.bool,
     disabled: PropTypes.bool,
     className: PropTypes.string,
     children: PropTypes.node,

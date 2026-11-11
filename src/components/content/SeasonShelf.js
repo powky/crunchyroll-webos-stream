@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import Spinner from '@enact/moonstone/Spinner'
 import SpotlightContainerDecorator from '@enact/spotlight/SpotlightContainerDecorator'
 import PropTypes from 'prop-types'
 
@@ -13,6 +12,9 @@ import api from '../../api'
 import { getIsPremium } from '../../utils'
 import css from './ContentDetail.module.less'
 
+
+/** room left at a faded edge, so the focused tab never sits under the fade */
+const TAB_FADE = 64
 
 /** coming down from the buttons lands on the open season, not on whichever tab is nearest */
 const TabsContainer = SpotlightContainerDecorator({
@@ -116,27 +118,44 @@ const SeasonShelf = ({ profile, contentState, isPremium, autoFocus }) => {
     /** like before: resting on a season tab for a moment opens it */
     const onTabFocusDelayed = useDelayedCall(selectSeasonFromEvent, 500)
 
-    /** keep the focused tab inside the row: slide the tabs, which have their own layer */
-    const onTabFocus = useCallback(ev => {
-        const tab = ev.currentTarget
+    /**
+     * Keep the focused tab inside the row: slide the tabs, which have their own layer. An edge with tabs hidden past
+     * it fades out (a mask on the row, so sliding re-renders nothing).
+     * @param {HTMLElement} [tab] focused tab
+     */
+    const placeTabs = useCallback(tab => {
         const inner = tabsRef.current
-        if (tab && inner && inner.parentNode) {
-            const visible = inner.parentNode.clientWidth
+        const row = inner && inner.parentNode
+        if (!row) {
+            return
+        }
+        const visible = row.clientWidth
+        const minOffset = Math.min(0, visible - inner.scrollWidth)
+        let offset = tabsOffsetRef.current
+        if (tab) {
             const left = tab.offsetLeft
             const right = left + tab.offsetWidth
-            let offset = tabsOffsetRef.current
-            if (left + offset < 0) {
-                offset = -left
-            } else if (right + offset > visible - 24) {
-                offset = visible - 24 - right
-            }
-            if (offset !== tabsOffsetRef.current) {
-                tabsOffsetRef.current = offset
-                inner.style.transform = `translate3d(${offset}px, 0, 0)`
+            if (left + offset < TAB_FADE) {
+                offset = TAB_FADE - left
+            } else if (right + offset > visible - TAB_FADE) {
+                offset = visible - TAB_FADE - right
             }
         }
-        onTabFocusDelayed({ currentTarget: tab })
-    }, [onTabFocusDelayed])
+        offset = Math.max(minOffset, Math.min(0, offset))
+        if (offset !== tabsOffsetRef.current) {
+            tabsOffsetRef.current = offset
+            inner.style.transform = `translate3d(${offset}px, 0, 0)`
+        }
+        row.classList.toggle(css.fadeLeft, offset < 0)
+        row.classList.toggle(css.fadeRight, offset > minOffset)
+    }, [])
+
+    const onTabFocus = useCallback(ev => {
+        placeTabs(ev.currentTarget)
+        onTabFocusDelayed({ currentTarget: ev.currentTarget })
+    }, [placeTabs, onTabFocusDelayed])
+
+    useEffect(() => placeTabs(), [labels, placeTabs])
 
     useBackVideoIndex(orderedEpisodes, setEpisodeIndex)
 
@@ -204,10 +223,9 @@ const SeasonShelf = ({ profile, contentState, isPremium, autoFocus }) => {
                     </div>
                 </TabsContainer>
                 <div className={css.tools}>
-                    {loading && <Spinner size='small' />}
-                    {!loading && seasons && seasons.length > 0 &&
+                    {seasons && seasons.length > 0 &&
                         <PillButton small plain icon='check'
-                            disabled={allWatched}
+                            disabled={allWatched || loading}
                             onClick={markAsWatched}>
                             {$L('Mark season as watched')}
                         </PillButton>

@@ -13,10 +13,13 @@ import css from './Backdrop.module.less'
  * painted once.
  * @param {Object} obj
  * @param {String} [obj.src] picture to show
+ * @param {String} [obj.preview] a small version of it, shown first while the big one downloads (4K art takes a while)
  * @param {'home'|'detail'|'dim'} [obj.variant] which fades to paint over it
  * @param {Number} [obj.delay] wait this long for `src` to settle before loading it
+ * @param {Number} [obj.fullDelay] with a preview: wait this long more before downloading the big one, so browsing
+ *     quickly only fetches previews and leaves the network to the API
  */
-const Backdrop = ({ src, variant = 'home', delay = 0, className }) => {
+const Backdrop = ({ src, preview, variant = 'home', delay = 0, fullDelay = 0, className }) => {
     /** @type {[{srcs: Array<String>, front: Number, settled: Boolean}, Function]} */
     const [state, setState] = useState({ srcs: [null, null], front: 0, settled: true })
     /** @type {{current: String}} */
@@ -26,41 +29,60 @@ const Backdrop = ({ src, variant = 'home', delay = 0, className }) => {
         wantedRef.current = src
         let cancelled = false
         let settleTimer = null
-        const show = () => {
-            if (cancelled || wantedRef.current !== src) {
+        let fullShown = false
+        let fullTimer = null
+        /** @type {Array<HTMLImageElement>} downloads in flight, dropped when the picture changes */
+        const loading = []
+        const show = (url, isFull) => {
+            if (cancelled || wantedRef.current !== src || (!isFull && fullShown)) {
                 return
             }
+            fullShown = fullShown || isFull
             setState(prev => {
-                if (prev.srcs[prev.front] === src) {
+                if (prev.srcs[prev.front] === url) {
                     return prev
                 }
                 const front = prev.front === 0 ? 1 : 0
                 const srcs = prev.srcs.slice()
-                srcs[front] = src
+                srcs[front] = url
                 return { srcs, front, settled: false }
             })
+            clearTimeout(settleTimer)
             settleTimer = setTimeout(() => setState(prev => ({ ...prev, settled: true })), 500)
         }
-        const load = () => {
-            if (!src) {
-                return
-            }
+        const load = (url, isFull) => {
             const img = new window.Image()
-            img.src = src
+            const done = () => show(url, isFull)
+            loading.push(img)
+            img.src = url
             if (img.decode) {
-                img.decode().then(show, show)
+                img.decode().then(done, done)
             } else {
-                img.onload = show
-                img.onerror = show
+                img.onload = done
+                img.onerror = done
             }
         }
-        const timer = setTimeout(load, delay)
+        const timer = setTimeout(() => {
+            const withPreview = preview && preview !== src
+            if (withPreview) {
+                load(preview, false)
+            }
+            if (src) {
+                fullTimer = setTimeout(() => load(src, true), withPreview ? fullDelay : 0)
+            }
+        }, delay)
         return () => {
             cancelled = true
             clearTimeout(timer)
+            clearTimeout(fullTimer)
             clearTimeout(settleTimer)
+            loading.forEach(img => {
+                if (!img.complete) {
+                    img.src = ''  // stops the download
+                }
+            })
         }
-    }, [src, delay])
+    }, [src, preview, delay, fullDelay])
 
     return (
         <div className={classNames(css.backdrop, css[variant], className)}>
@@ -83,8 +105,10 @@ const Backdrop = ({ src, variant = 'home', delay = 0, className }) => {
 
 Backdrop.propTypes = {
     src: PropTypes.string,
+    preview: PropTypes.string,
     variant: PropTypes.oneOf(['home', 'detail', 'dim']),
     delay: PropTypes.number,
+    fullDelay: PropTypes.number,
     className: PropTypes.string,
 }
 

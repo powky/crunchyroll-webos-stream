@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
 
@@ -115,15 +116,40 @@ export const getMetaParts = (content) => {
 }
 
 /**
+ * The show's title logo, or its name as text when there's no logo or it doesn't load
+ * @param {Object} obj
+ * @param {String} [obj.logo]
+ * @param {String} obj.title
+ */
+const Title = ({ logo, logoPending, title }) => {
+    const [failed, setFailed] = useState(false)
+    const onError = useCallback(() => setFailed(true), [])
+    useEffect(() => setFailed(false), [logo])
+    if (logoPending) {
+        return <div className={css.logoTitle} />
+    }
+    if (logo && !failed) {
+        return (
+            <h1 className={css.logoTitle}>
+                <img className={css.logo} src={logo} alt={title} onError={onError} />
+            </h1>
+        )
+    }
+    return <h1 className={css.title}>{title}</h1>
+}
+
+/**
  * Title, metadata and synopsis of a show, over its backdrop
  * @param {Object} obj
  * @param {Object} obj.content
  * @param {'home'|'detail'|'compact'} [obj.size]
  * @param {String} [obj.eyebrow] overrides the computed one
  * @param {Number} [obj.lines] synopsis lines
+ * @param {String} [obj.logo] title logo picture, shown instead of the title text
+ * @param {Boolean} [obj.logoPending] the logo is still being looked up: keep its room empty, no text in between
  * @param {React.ReactNode} [obj.children] shown below (progress, buttons)
  */
-const HeroInfo = ({ content, size = 'home', eyebrow, lines = 3, className, children }) => {
+const HeroInfo = ({ content, size = 'home', eyebrow, lines = 3, logo, logoPending, className, children }) => {
     const { maturity, parts, rating } = getMetaParts(content)
     const top = eyebrow != null ? eyebrow : getEyebrow(content)
     const isEpisode = content.type === 'episode'
@@ -134,7 +160,7 @@ const HeroInfo = ({ content, size = 'home', eyebrow, lines = 3, className, child
     return (
         <div className={classNames(css.hero, css[size], className)}>
             {top && <div className={css.eyebrow}>{top}</div>}
-            <h1 className={css.title}>{title}</h1>
+            <Title logo={logo} logoPending={logoPending} title={title} />
             {subtitle && subtitle !== title && <div className={css.subtitle}>{subtitle}</div>}
             {(maturity || parts.length > 0 || rating) &&
                 <div className={css.meta}>
@@ -166,6 +192,8 @@ HeroInfo.propTypes = {
     size: PropTypes.oneOf(['home', 'detail', 'compact']),
     eyebrow: PropTypes.string,
     lines: PropTypes.number,
+    logo: PropTypes.string,
+    logoPending: PropTypes.bool,
     className: PropTypes.string,
     children: PropTypes.node,
 }

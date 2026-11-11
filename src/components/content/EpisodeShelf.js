@@ -4,6 +4,7 @@ import VirtualList from '@enact/moonstone/VirtualList'
 import PropTypes from 'prop-types'
 
 import Card, { CARD_LIFT } from '../ui/Card'
+import { SkeletonCards } from '../ui/Skeleton'
 import { pickImage } from '../ui/images'
 import { getProgress } from '../home/FeedRow'
 import LoadingList from '../LoadingList'
@@ -78,7 +79,8 @@ const EpisodeShelf = ({ episodes, episodeIndex, selectEpisode, autoFocus = false
             <LoadingList
                 list={episodes}
                 index={episodeIndex}
-                scrollFn={scrollToRef.current}>
+                scrollFn={scrollToRef.current}
+                skeleton={<SkeletonCards width={EP_WIDTH} count={4} lines={3} />}>
                 {episodes && episodes.length > 0 &&
                     <VirtualList
                         dataSize={episodes.length}

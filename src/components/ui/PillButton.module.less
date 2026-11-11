@@ -66,6 +66,13 @@
 		color: @cr-muted;
 	}
 
+	// frosted look without a backdrop blur: a blur under buttons that scale on focus re-renders on every move
+	// (measured on the show page: p95 17 -> 50 ms)
+	&.glass {
+		background: rgba(255, 255, 255, 0.16);
+		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+	}
+
 	&.selected {
 		background: @cr-glass-hi;
 		color: @cr-text;
@@ -73,6 +80,7 @@
 
 	&.small:focus,
 	&.plain:focus,
+	&.glass:focus,
 	&.selected:focus {
 		background: @cr-focus-bg;
 		color: @cr-focus-text;

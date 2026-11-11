@@ -1,6 +1,5 @@
 import { useRef, useState, useEffect, useMemo, useCallback } from 'react'
 import ri from '@enact/ui/resolution'
-import Spinner from '@enact/moonstone/Spinner'
 import PropTypes from 'prop-types'
 
 import { useSetRecoilState, useRecoilValue } from 'recoil'
@@ -9,6 +8,7 @@ import { homeViewReadyState, isPremiumState } from '../../recoilConfig'
 import api from '../../api'
 import VirtualListNested from '../../patch/VirtualListNested'
 import Card, { CARD_LIFT } from '../ui/Card'
+import { Bone, Skeleton, SkeletonCards } from '../ui/Skeleton'
 import { pickImage } from '../ui/images'
 import { getEpisodeLabel, getMetaParts } from '../ui/HeroInfo'
 import { useNavigateContent } from '../../hooks/navigate'
@@ -235,7 +235,12 @@ const HomeFeedRow = ({ profile, cellId, itemSize, feedRow, rowInfo, style, class
 
     return (
         <div className={newClassName} style={newStyle} {...rest}>
-            {!feedData && <div className={css.loading}><Spinner size='small' /></div>}
+            {!feedData && <>
+                <Skeleton className={css.rowTitle}><Bone w={260} h={28} r={8} style={{ marginTop: 4 }} /></Skeleton>
+                <div className={css.rowList}>
+                    <SkeletonCards width={CARD_WIDTH} />
+                </div>
+            </>}
             {feedData && <>
                 <h2 className={css.rowTitle}>{feedData.title}</h2>
                 <div className={css.rowList}>

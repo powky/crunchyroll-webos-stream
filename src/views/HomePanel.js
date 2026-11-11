@@ -1,13 +1,13 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { Panel } from '@enact/moonstone/Panels'
-import Spinner from '@enact/moonstone/Spinner'
 import classNames from 'classnames'
 
 import { useRecoilValue, useSetRecoilState } from 'recoil'
 
 import { currentProfileState, categoriesState, homeViewReadyState, uiLanguageState } from '../recoilConfig'
 import TopNav from '../components/home/TopNav'
+import { Bone, Skeleton, SkeletonCards, SkeletonHero } from '../components/ui/Skeleton'
 import HomeFeed from '../components/home/Feed'
 import MusicBrowse from '../components/music/Music'
 import ContentGrid from '../components/grid/ContentGrid'
@@ -27,26 +27,34 @@ import css from './HomePanel.module.less'
 const ActivityViews = ({ index, children }) => (children[index])
 
 /**
- * Puts "Continue Watching" first or second (setting homeFirst). Rows get their new position as `index`, and the
- * feed a different id per order, because rows are cached and restored by feed id and index.
+ * Cleans the feed up and orders it:
+ * - drops rows of cards whose contents another row already shows in full (Crunchyroll sends the hero's first card
+ *   on its own and then again in the hero collection);
+ * - names the hero collection, which comes without a title;
+ * - puts "Continue Watching" first or second (setting homeFirst).
+ * Rows get their new position as `index`, and the feed a different id per order, because rows are cached and
+ * restored by feed id and index.
  * @param {{id: Number, items: Array<Object>}} homeFeed
  * @param {'suggestions'|'continue'} homeFirst
  * @returns {{id: Number, items: Array<Object>}}
  */
 const orderHomeFeed = (homeFeed, homeFirst) => {
-    const items = homeFeed.items || []
+    const ids = item => item.contentIds || []
+    const items = (homeFeed.items || [])
+        .filter(item => !ids(item).length || !homeFeed.items.some(other => (
+            other !== item && ids(other).length > ids(item).length && ids(item).every(id => ids(other).includes(id))
+        )))
+        .map(item => (item.type === 'HeroCollection' && !item.title ? { ...item, title: $L('Featured') } : item))
     const historyIndex = items.findIndex(item => item.type === 'HistoryCollection' || item.response_type === 'history')
-    if (historyIndex < 0) {
-        return homeFeed
+    if (historyIndex >= 0) {
+        const target = homeFirst === 'continue' ? 0 : Math.min(1, items.length - 1)
+        const [history] = items.splice(historyIndex, 1)
+        items.splice(target, 0, history)
     }
-    const target = homeFirst === 'continue' ? 0 : Math.min(1, items.length - 1)
-    const reordered = items.slice()
-    const [history] = reordered.splice(historyIndex, 1)
-    reordered.splice(target, 0, history)
     return {
         ...homeFeed,
-        id: homeFeed.id + (homeFirst === 'continue' ? 1 : 2),
-        items: reordered.map((item, index) => ({ ...item, index })),
+        id: homeFeed.id + (homeFirst === 'continue' ? 11 : 12),
+        items: items.map((item, index) => ({ ...item, index })),
     }
 }
 
@@ -156,9 +164,18 @@ const HomePanel = (props) => {
 
     return (
         <Panel {...props} className={classNames(props.className, css.homePanel)}>
-            {loading &&
+            {loading && currentActivity === 0 &&
                 <div className={css.loading}>
-                    <Spinner />
+                    <SkeletonHero className={css.loadingHero} />
+                    <div className={css.loadingRow}>
+                        <Skeleton><Bone w={260} h={28} r={8} /></Skeleton>
+                        <SkeletonCards width={384} className={css.loadingCards} />
+                    </div>
+                </div>
+            }
+            {loading && currentActivity !== 0 &&
+                <div className={css.page}>
+                    <SkeletonCards width={352} className={css.loadingCards} />
                 </div>
             }
             {!loading &&

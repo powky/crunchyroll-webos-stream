@@ -118,6 +118,18 @@
 	min-width: 0;
 	height: 48px;
 	overflow: hidden;
+
+	&.fadeLeft {
+		-webkit-mask-image: linear-gradient(to right, transparent, #000 64px);
+	}
+
+	&.fadeRight {
+		-webkit-mask-image: linear-gradient(to left, transparent, #000 64px);
+	}
+
+	&.fadeLeft.fadeRight {
+		-webkit-mask-image: linear-gradient(to right, transparent, #000 64px, #000 calc(100% - 64px), transparent);
+	}
 }
 
 .tabsInner {

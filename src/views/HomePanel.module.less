@@ -6,15 +6,30 @@
 	background: @cr-bg;
 }
 
+// the home feed's shape while it loads: hero text and one shelf, where they will be
 .loading {
 	position: absolute;
 	top: 0;
 	left: 0;
 	width: 1920px;
 	height: 1080px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+}
+
+.loadingHero {
+	position: absolute;
+	top: 210px;
+	left: @cr-pad;
+}
+
+.loadingRow {
+	position: absolute;
+	top: 684px;
+	left: @cr-pad;
+	right: 0;
+}
+
+.loadingCards {
+	margin: 4px 0 0 (-@cr-lift);
 }
 
 // every other tab: below the bar, inside the safe margins

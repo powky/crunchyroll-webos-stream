@@ -245,6 +245,27 @@ const APPEND_CSS = {
 .dialog:global(.moonstone) .titleWrapper {
   border-bottom-color: rgba(255, 255, 255, 0.1);
 }`,
+    // tooltips: no bubble, just the button's name under it, like tvOS (short enough to fit under the bottom row,
+    // or moonstone flips it above)
+    'TooltipDecorator/Tooltip.module.css': `
+.tooltip .tooltipArrow {
+  display: none;
+}
+.tooltip .tooltipLabel,
+.tooltip.below .tooltipLabel,
+.tooltip:global(.moonstone) .tooltipLabel,
+.tooltip:global(.moonstone-light) .tooltipLabel {
+  margin-top: 0.25rem;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: rgba(245, 245, 247, 0.92);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-shadow: 0 1px 0.25rem rgba(0, 0, 0, 0.7);
+}`,
 }
 
 /**
@@ -261,6 +282,11 @@ function patchMoonstoneTheme() {
         const fileContent = fs.readFileSync(filePath, 'utf-8')
         fs.writeFileSync(filePath, fileContent.replace("defaultSkin: 'light'", "defaultSkin: 'dark'"), 'utf-8')
     }
+    // tooltips show a while later and under the button: a hint for who lingers, not a bubble on every move
+    const tooltipPath = path.join(moonDir, 'TooltipDecorator/TooltipDecorator.js')
+    fs.writeFileSync(tooltipPath, fs.readFileSync(tooltipPath, 'utf-8')
+        .replace('tooltipDelay: 500,', 'tooltipDelay: 1200,')
+        .replace("tooltipPosition: 'above',", "tooltipPosition: 'below center',"), 'utf-8')
     const cssFiles = fs.readdirSync(moonDir, { recursive: true })
         .filter(file => file.endsWith('.css') && !file.includes('node_modules'))
     for (const file of cssFiles) {
@@ -282,6 +308,7 @@ function patchMoonstoneTheme() {
             // the app's SF Symbols font ("CR Icons", src/components/ui/Icons.js) covers LG's icon code points first
             if (!selector.includes('@font-face')) {
                 body = body.replace(/font-family: "Moonstone Icons";/g, 'font-family: "CR Icons", "Moonstone Icons";')
+                    .replace(/font-family: "LG Icons";/g, 'font-family: "CR Icons", "LG Icons";')
             }
             return `${selector}{${body}}`
         })

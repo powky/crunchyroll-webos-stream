@@ -57,7 +57,12 @@ FONT = {
     0x0F0085: 'captions.bubble.fill', 0x0F00AB: 'info.circle', 0x0F00C4: 'pencil', 0x0F00F4: 'arrow.up.arrow.down',
     0x0F0107: 'checkmark.circle', 0x1F44D: 'hand.thumbsup.fill', 0x1F44E: 'hand.thumbsdown.fill',
     0xE000: 'textformat.size',
+    # the rating buttons
+    0xE001: 'hand.thumbsup', 0xE002: 'hand.thumbsdown', 0xE003: 'hand.thumbsup.fill', 0xE004: 'hand.thumbsdown.fill',
 }
+# characters that aren't moonstone icon names are "dingbats" to moonstone: drawn at half its icon size (and in
+# "LG Icons", which the build's patch puts after "CR Icons"), so their glyphs are drawn twice as big
+DINGBATS = {0xE000, 0xE001, 0xE002, 0xE003, 0xE004}
 
 UPM = 1000
 # moonstone's icon glyphs sit around y=250 in a 750/-250 em; a 200-unit symbol (100 pt) becomes ~350 units, a bit
@@ -95,11 +100,12 @@ def build_font(symbols):
             pen = T2CharStringPen(500, None)
             charstrings[name], metrics[name] = pen.getCharString(), (500, 0)
             continue
-        width = round(glyph['w'] * SCALE)
+        scale = SCALE * (2 if cp in DINGBATS else 1)
+        width = round(glyph['w'] * scale)
         pen = T2CharStringPen(width, None)
         # svg y-down (0..h) -> font y-up, centred on CENTER_Y
-        top = CENTER_Y + glyph['h'] * SCALE / 2
-        parse_path(glyph['d'], TransformPen(pen, (SCALE, 0, 0, -SCALE, 0, top)))
+        top = CENTER_Y + glyph['h'] * scale / 2
+        parse_path(glyph['d'], TransformPen(pen, (scale, 0, 0, -scale, 0, top)))
         charstrings[name], metrics[name] = pen.getCharString(), (width, 0)
     fb.setupCFF('CRIcons', {'FullName': 'CR Icons'}, charstrings, {})
     fb.setupHorizontalMetrics(metrics)

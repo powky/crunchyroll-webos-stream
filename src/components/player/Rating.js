@@ -4,7 +4,11 @@ import IconButton from '@enact/moonstone/IconButton'
 import PropTypes from 'prop-types'
 
 import api from '../../api'
-import css from '../Share.module.less'
+
+/** SF Symbols thumbs in the app's icon font (tools/sf-symbols): outlined, filled once rated */
+const THUMB = {
+    up: '\uE001', down: '\uE002', upRated: '\uE003', downRated: '\uE004',
+}
 
 
 /**
@@ -56,16 +60,14 @@ const Rating = ({ profile, content, ...rest }) => {
             <IconButton backgroundOpacity="lightTranslucent"
                 selected={rating === 'down'}
                 onClick={rateDown}
-                css={{ iconButton: css.IconButtonCustomColor }}
                 {...rest}>
-                &#x1F44E;
+                {rating === 'down' ? THUMB.downRated : THUMB.down}
             </IconButton>
             <IconButton backgroundOpacity="lightTranslucent"
                 selected={rating === 'up'}
                 onClick={rateUp}
-                css={{ iconButton: css.IconButtonCustomColor }}
                 {...rest}>
-                &#x1F44D;
+                {rating === 'up' ? THUMB.upRated : THUMB.up}
             </IconButton>
         </>
     )

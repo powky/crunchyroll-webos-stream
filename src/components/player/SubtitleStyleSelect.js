@@ -9,7 +9,7 @@ import PropTypes from 'prop-types'
 
 import api from '../../api'
 import { updateSubtitleSettings } from '../../hooks/subtitleLocal'
-import { useNavigate } from '../../hooks/navigate'
+import { usePlayerPopup } from '../../hooks/playerPopup'
 
 const IconButtonWithPopup = ContextualPopupDecorator(IconButton)
 
@@ -124,19 +124,7 @@ Panel.propTypes = {
  * @param {Function} obj.triggerActivity
  */
 const SubtitleStyleSelect = ({ triggerActivity, ...rest }) => {
-    const { pushHistory, popHistory } = useNavigate()
-    /** @type {[Boolean, Function]} */
-    const [showPanel, setShowPanel] = useState(false)
-
-    const togglePanel = useCallback(() => {
-        if (showPanel) {
-            setShowPanel(false)
-            popHistory()
-        } else {
-            setShowPanel(true)
-            pushHistory(() => setShowPanel(false))
-        }
-    }, [showPanel, setShowPanel, pushHistory, popHistory])
+    const { open, toggle, close } = usePlayerPopup()
 
     const panel = useCallback(() => (
         <Panel triggerActivity={triggerActivity} />
@@ -145,12 +133,11 @@ const SubtitleStyleSelect = ({ triggerActivity, ...rest }) => {
     return (
         <IconButtonWithPopup
             backgroundOpacity='lightTranslucent'
-            open={showPanel}
-            onClick={togglePanel}
-            onClose={togglePanel}
+            open={open}
+            onClick={toggle}
+            onClose={close}
             popupComponent={panel}
             direction='up'
-            showCloseButton
             {...rest}>
             {'\uE000'}
         </IconButtonWithPopup>

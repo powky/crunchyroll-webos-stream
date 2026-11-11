@@ -1,11 +1,11 @@
 
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import IconButton from '@enact/moonstone/IconButton'
 import ContextualPopupDecorator from '@enact/moonstone/ContextualPopupDecorator'
 import PropTypes from 'prop-types'
 
 import AudioList from './AudioList'
-import { useNavigate } from '../../hooks/navigate'
+import { usePlayerPopup } from '../../hooks/playerPopup'
 
 const IconButtonWithPopup = ContextualPopupDecorator(IconButton)
 
@@ -17,24 +17,12 @@ const IconButtonWithPopup = ContextualPopupDecorator(IconButton)
  * @param {Function} [obj.triggerActivity]
  */
 const AudioSelect = ({ audios, audio, selectAudio, triggerActivity, ...rest }) => {
-    const { pushHistory, popHistory } = useNavigate()
-    /** @type {[Boolean, Function]} */
-    const [showAudioList, setShowAudioList] = useState(false)
-
-    const toggleAudioList = useCallback(() => {
-        if (showAudioList) {
-            setShowAudioList(false)
-            popHistory()
-        } else {
-            setShowAudioList(true)
-            pushHistory(() => setShowAudioList(false))
-        }
-    }, [showAudioList, setShowAudioList, pushHistory, popHistory])
+    const { open, toggle, close } = usePlayerPopup()
 
     const onSelectAudio = useCallback(({ selected }) => {
         selectAudio(selected)
-        toggleAudioList()
-    }, [toggleAudioList, selectAudio])
+        close()
+    }, [close, selectAudio])
 
     const audioList = useCallback(() => (
         <AudioList
@@ -47,12 +35,11 @@ const AudioSelect = ({ audios, audio, selectAudio, triggerActivity, ...rest }) =
     return (
         <IconButtonWithPopup
             backgroundOpacity="lightTranslucent"
-            open={showAudioList}
-            onClick={toggleAudioList}
-            onClose={toggleAudioList}
+            open={open}
+            onClick={toggle}
+            onClose={close}
             popupComponent={audioList}
             direction='up'
-            showCloseButton
             {...rest}>
             audio
         </IconButtonWithPopup>

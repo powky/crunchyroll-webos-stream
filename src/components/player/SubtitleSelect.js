@@ -1,11 +1,11 @@
 
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import IconButton from '@enact/moonstone/IconButton'
 import ContextualPopupDecorator from '@enact/moonstone/ContextualPopupDecorator'
 import PropTypes from 'prop-types'
 
 import SubtitleList from './SubtitleList'
-import { useNavigate } from '../../hooks/navigate'
+import { usePlayerPopup } from '../../hooks/playerPopup'
 
 const IconButtonWithPopup = ContextualPopupDecorator(IconButton)
 
@@ -18,24 +18,12 @@ const IconButtonWithPopup = ContextualPopupDecorator(IconButton)
  * @param {Function} [obj.triggerActivity]
  */
 const SubtitleSelect = ({ subtitles, subtitle, selectSubtitle, triggerActivity, ...rest }) => {
-    const { pushHistory, popHistory } = useNavigate()
-    /** @type {[Boolean, Function]} */
-    const [showSubtitleList, setShowSubtitleList] = useState(false)
-
-    const toggleSubtitleList = useCallback(() => {
-        if (showSubtitleList) {
-            setShowSubtitleList(false)
-            popHistory()
-        } else {
-            setShowSubtitleList(true)
-            pushHistory(() => setShowSubtitleList(false))
-        }
-    }, [showSubtitleList, setShowSubtitleList, pushHistory, popHistory])
+    const { open, toggle, close } = usePlayerPopup()
 
     const onSelectSubtitle = useCallback(({ selected }) => {
         selectSubtitle(selected)
-        toggleSubtitleList()
-    }, [selectSubtitle, toggleSubtitleList])
+        close()
+    }, [selectSubtitle, close])
 
     const subtitleList = useCallback(() => (
         <SubtitleList
@@ -48,12 +36,11 @@ const SubtitleSelect = ({ subtitles, subtitle, selectSubtitle, triggerActivity, 
     return (
         <IconButtonWithPopup
             backgroundOpacity="lightTranslucent"
-            open={showSubtitleList}
-            onClick={toggleSubtitleList}
-            onClose={toggleSubtitleList}
+            open={open}
+            onClick={toggle}
+            onClose={close}
             popupComponent={subtitleList}
             direction='up'
-            showCloseButton
             {...rest}>
             sub
         </IconButtonWithPopup>

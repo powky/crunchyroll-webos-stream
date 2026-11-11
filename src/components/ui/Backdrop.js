@@ -3,7 +3,11 @@ import PropTypes from 'prop-types'
 import classNames from 'classnames'
 
 import { isReady, markReady } from './preload'
+import { getStoredImage } from '../../hooks/imageStore'
 import css from './Backdrop.module.less'
+
+/** a preview waits this long: when the big picture comes from the TV's own store, it's there first and no blur shows */
+const PREVIEW_GRACE_MS = 150
 
 
 /**
@@ -52,25 +56,32 @@ const Backdrop = ({ src, preview, variant = 'home', delay = 0, fullDelay = 0, cl
             clearTimeout(settleTimer)
             settleTimer = setTimeout(() => setState(prev => ({ ...prev, settled: true })), 500)
         }
+        /** the stored copy of the picture (downloaded and stored first if new), decoded off screen, then shown */
         const load = (url, isFull) => {
-            const img = new window.Image()
-            const done = () => show(url, isFull)
-            loading.push(img)
-            img.src = url
-            if (img.decode) {
-                img.decode().then(() => {
-                    markReady(url)
-                    done()
-                }, done)
-            } else {
-                img.onload = done
-                img.onerror = done
-            }
+            getStoredImage(url).then(stored => {
+                if (cancelled) {
+                    return
+                }
+                const img = new window.Image()
+                const done = () => show(stored, isFull)
+                loading.push(img)
+                img.src = stored
+                if (img.decode) {
+                    img.decode().then(() => {
+                        markReady(url)
+                        done()
+                    }, done)
+                } else {
+                    img.onload = done
+                    img.onerror = done
+                }
+            })
         }
+        let previewTimer = null
         const timer = setTimeout(() => {
             const withPreview = preview && preview !== src && !isReady(src)
             if (withPreview) {
-                load(preview, false)
+                previewTimer = setTimeout(() => load(preview, false), fullDelay ? 0 : PREVIEW_GRACE_MS)
             }
             if (src) {
                 fullTimer = setTimeout(() => load(src, true), withPreview ? fullDelay : 0)
@@ -79,6 +90,7 @@ const Backdrop = ({ src, preview, variant = 'home', delay = 0, fullDelay = 0, cl
         return () => {
             cancelled = true
             clearTimeout(timer)
+            clearTimeout(previewTimer)
             clearTimeout(fullTimer)
             clearTimeout(settleTimer)
             loading.forEach(img => {

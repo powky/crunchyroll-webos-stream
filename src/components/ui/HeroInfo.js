@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import classNames from 'classnames'
 
 import { $L } from '../../hooks/language'
+import { useStoredImage } from '../../hooks/imageStore'
 import { getDuration, isPlayable } from '../../utils'
 import css from './HeroInfo.module.less'
 
@@ -124,14 +125,15 @@ export const getMetaParts = (content) => {
 const Title = ({ logo, logoPending, title }) => {
     const [failed, setFailed] = useState(false)
     const onError = useCallback(() => setFailed(true), [])
+    const src = useStoredImage(logo)
     useEffect(() => setFailed(false), [logo])
-    if (logoPending) {
+    if (logoPending || (logo && !src && !failed)) {  // the logo's room stays empty: no text in between
         return <div className={css.logoTitle} />
     }
     if (logo && !failed) {
         return (
             <h1 className={css.logoTitle}>
-                <img className={css.logo} src={logo} alt={title} onError={onError} />
+                <img className={css.logo} src={src} alt={title} onError={onError} />
             </h1>
         )
     }

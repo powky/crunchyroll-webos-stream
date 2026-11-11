@@ -1,7 +1,9 @@
+import { getStoredImage, peekStoredImage } from '../../hooks/imageStore'
+
 /**
  * Pictures downloaded ahead of time, so the artwork of what's next to the focus is already here when the focus gets
- * there. They go to the browser's cache (the CDN lets it keep them a day). The nearest ones are also decoded and
- * held: showing a held picture costs ~25 ms on this TV instead of ~250 ms for decoding a 1440p one.
+ * there. They go to the TV's picture store (hooks/imageStore). The nearest ones are also decoded and held: showing a
+ * held picture costs ~25 ms on this TV instead of ~250 ms for decoding a 1440p one.
  */
 
 /** pictures known to be in the cache: downloaded here, or shown */
@@ -20,16 +22,13 @@ const decoded = new Map()
 /**
  * Decode a downloaded picture and hold it while it's still wanted
  * @param {String} url
- * @param {HTMLImageElement} [img] the one that downloaded it
  */
-const holdDecoded = (url, img) => {
+const holdDecoded = (url) => {
     if (decoded.has(url) || !wantDecoded.has(url)) {
         return
     }
-    if (!img) {
-        img = new window.Image()
-        img.src = url
-    }
+    const img = new window.Image()
+    img.src = peekStoredImage(url) || url  // the same blob URL the backdrop will show
     if (img.decode) {
         img.decode().then(() => {
             if (wantDecoded.has(url)) {
@@ -42,19 +41,15 @@ const holdDecoded = (url, img) => {
 const next = () => {
     while (loading.size < MAX_PARALLEL && queue.length) {
         const url = queue.shift()
-        const img = new window.Image()
-        const done = (ok) => {
+        loading.add(url)
+        getStoredImage(url).then(stored => {
             loading.delete(url)
-            if (ok) {
+            if (stored !== url) {  // stored on the TV (the original back means it failed)
                 ready.add(url)
-                holdDecoded(url, img)
+                holdDecoded(url)
             }
             next()
-        }
-        loading.add(url)
-        img.onload = () => done(true)
-        img.onerror = () => done(false)
-        img.src = url
+        })
     }
 }
 

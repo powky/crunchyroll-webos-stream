@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import classNames from 'classnames'
 
 import Icon from './Icons'
+import { useStoredImage } from '../../hooks/imageStore'
 import css from './Card.module.less'
 
 
@@ -32,28 +33,31 @@ export const cardHeight = (width, mode = 'wide') => Math.round(mode === 'tall' ?
 const Card = ({
     image, width, mode = 'wide', title, subtitle, progress, badge, duration, watched, number, text,
     className, children, ...rest
-}) => (
-    <SpottableDiv className={classNames('cr-own', css.card, className)} {...rest}>
-        <div className={css.art} style={{ width, height: cardHeight(width, mode) }}>
-            <img src={image} alt='' decoding='async' />
-            {progress > 0 &&
-                <div className={css.progress}><i style={{ width: `${Math.min(100, progress)}%` }} /></div>
-            }
-            {badge && <div className={css.badge}>{badge}</div>}
-            {duration && <div className={css.duration}>{duration}</div>}
-            {watched && <div className={css.watched}><Icon name='check' /></div>}
-            {children}
-        </div>
-        {title &&
-            <div className={css.title} style={{ width }}>
-                {number != null && <b>{number}</b>}
-                {title}
+}) => {
+    const src = useStoredImage(image)
+    return (
+        <SpottableDiv className={classNames('cr-own', css.card, className)} {...rest}>
+            <div className={css.art} style={{ width, height: cardHeight(width, mode) }}>
+                {src && <img src={src} alt='' decoding='async' />}
+                {progress > 0 &&
+                    <div className={css.progress}><i style={{ width: `${Math.min(100, progress)}%` }} /></div>
+                }
+                {badge && <div className={css.badge}>{badge}</div>}
+                {duration && <div className={css.duration}>{duration}</div>}
+                {watched && <div className={css.watched}><Icon name='check' /></div>}
+                {children}
             </div>
-        }
-        {subtitle && <div className={css.subtitle} style={{ width }}>{subtitle}</div>}
-        {text && <div className={css.text} style={{ width }}>{text}</div>}
-    </SpottableDiv>
-)
+            {title &&
+                <div className={css.title} style={{ width }}>
+                    {number != null && <b>{number}</b>}
+                    {title}
+                </div>
+            }
+            {subtitle && <div className={css.subtitle} style={{ width }}>{subtitle}</div>}
+            {text && <div className={css.text} style={{ width }}>{text}</div>}
+        </SpottableDiv>
+    )
+}
 
 Card.propTypes = {
     image: PropTypes.string,

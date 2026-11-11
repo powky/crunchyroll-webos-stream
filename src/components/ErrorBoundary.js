@@ -13,6 +13,11 @@ class ErrorBoundary extends Component {
         this.promiseRejectionHandler = (event) => {
             // get uncatch promises
             this.componentDidCatch(event.reason)
+            // the service's timeouts and dropped connections are flagged retryable: a background load that hit
+            // one isn't worth an error screen
+            if (event.reason && event.reason.retry === true) {
+                return
+            }
             this.setState({ hasError: true, error: event.reason })
         }
         this.closeErrorPanel = () => {

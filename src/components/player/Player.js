@@ -915,8 +915,10 @@ const Player = ({ ...rest }) => {
             } else {
                 setMessage(err.message || err.httpStatusText)
             }
+        } else if (err && err.retry) {  // the service gave up waiting (timeout, dropped connection)
+            setMessage($L('Crunchyroll took too long to answer. Try again.'))
         } else if (err) {
-            setMessage(err.message || `${err}`)
+            setMessage(err.message || err.error || `${err}`)
         } else {
             setMessage($L('An error occurred'))
         }

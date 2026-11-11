@@ -78,16 +78,6 @@ const ProfilesPanel = ({ ...rest }) => {
         goTo('/profiles/edit')
     }, [multiProfile, setCurrentProfile, goTo])
 
-    /** @type {Function} */
-    const setFocus = useCallback(ev => {
-        if (ev && ev.node && multiProfile && multiProfile.profiles.length) {
-            if (ev.node.dataset.profileId === multiProfile.profiles[0].profile_id) {
-                ev.node.focus()
-                Spotlight.focus(ev.node)
-            }
-        }
-    }, [multiProfile])
-
     useEffect(() => {
         if (DEV_FAST_SELECT && multiProfile && multiProfile.profiles.length) {
             doSelectProfile(multiProfile.profiles[0])
@@ -98,8 +88,24 @@ const ProfilesPanel = ({ ...rest }) => {
         api.account.getProfiles().then(setMultiProfile)
     }, [])
 
+    useEffect(() => {  // nothing is focused at first: the first key goes to the first profile (spotlight would pick by
+        // pointer position, the top-left corner)
+        const onKeyDown = (ev) => {
+            if (!Spotlight.getCurrent() && [13, 37, 38, 39, 40].includes(ev.keyCode)) {
+                const first = document.querySelector('[data-profile-id].spottable-default')
+                if (first) {
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    Spotlight.focus(first)
+                }
+            }
+        }
+        window.addEventListener('keydown', onKeyDown, true)
+        return () => window.removeEventListener('keydown', onKeyDown, true)
+    }, [])
+
     return (
-        <Panel {...rest} className={classNames(rest.className, css.profilesPanel)}>
+        <Panel {...rest} autoFocus='none' className={classNames(rest.className, css.profilesPanel)}>
             <div className={css.corner}>
                 <AppConfigBtn />
                 <ContactMeBtn />
@@ -108,12 +114,13 @@ const ProfilesPanel = ({ ...rest }) => {
             {!loading && multiProfile && multiProfile.profiles.length ?
                 <div className={css.center}>
                     <h1 className={css.title}>{$L('Who will go on an adventure?')}</h1>
-                    <div className={css.profiles}>
+                    {/* nothing is focused until a key is pressed: the first press lands on the first profile */}
+                    <div className={classNames(css.profiles, { [css.many]: multiProfile.profiles.length > 3 })}>
                         {multiProfile.profiles.map((profile, i) =>
                             <Profile profile={profile} key={i}
+                                isDefault={i === 0}
                                 onSelectProfile={onSelectProfile}
-                                onEditProfile={onEditProfile}
-                                compRef={setFocus} />
+                                onEditProfile={onEditProfile} />
                         )}
                     </div>
                     <div className={css.footer}>
@@ -130,7 +137,7 @@ const ProfilesPanel = ({ ...rest }) => {
                     <div className={css.profiles}>
                         {[0, 1, 2].map(i => (
                             <div key={i} className={css.profile}>
-                                <Bone w={200} h={200} r='50%' />
+                                <Bone w={300} h={300} r='50%' />
                                 <Bone w={120} h={28} r={8} style={{ marginTop: 30 }} />
                             </div>
                         ))}

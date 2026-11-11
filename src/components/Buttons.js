@@ -20,7 +20,7 @@ import api from '../api'
  * @param {AppButtonPropsBase & import('@enact/moonstone/IconButton').IconButtonProps} obj
  */
 /** moonstone icon names used here -> the app's own glyphs (components/ui/Icons) */
-const ICONS = { gear: 'gear', info: 'info', arrowshrinkright: 'logout' }
+const ICONS = { gear: 'gear', info: 'info', arrowshrinkright: 'power' }
 
 /**
  * @param {Object} obj

@@ -16,14 +16,17 @@
 	z-index: 2;
 }
 
+// the title, the profiles and Add, as one block in the middle of the screen
 .center {
 	position: absolute;
-	top: 200px;
+	top: 0;
+	bottom: 0;
 	left: 0;
 	right: 0;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	justify-content: center;
 }
 
 .loading {
@@ -45,24 +48,36 @@
 	letter-spacing: -0.03em;
 }
 
+// up to three profiles are big; an account has five at most, which still fit in a line a bit smaller
 .profiles {
 	display: flex;
 	justify-content: center;
-	margin-top: 70px;
+	margin-top: 80px;
 }
 
 .profile {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	width: 260px;
-	margin: 0 20px;
+	width: 360px;
+	margin: 0 24px;
+
+	.many & {
+		width: 300px;
+		margin: 0 16px;
+	}
 }
 
 .profileImg {
-	width: 200px !important;
-	height: 200px !important;
+	width: 300px !important;
+	height: 300px !important;
 	margin: 0 !important;
+
+	.many & {
+		width: 240px !important;
+		height: 240px !important;
+	}
+
 	border-radius: 50%;
 	background-color: @cr-surface !important;
 	outline: none;
@@ -71,26 +86,42 @@
 }
 
 .profileFocus {
-	transform: scale(1.1);
+	transform: scale(1.08);
 	box-shadow: 0 0 0 6px #fff;
 }
 
+// the name, and the pencil to edit the profile right of it
+.nameRow {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 100%;
+	margin-top: 36px;
+	padding-left: 56px;  // the pencil's width: the name stays centred under the picture
+	box-sizing: border-box;
+}
+
 .name {
-	margin-top: 30px;
+	min-width: 0;
 	color: @cr-text;
-	font-size: 28px;
+	font-size: 34px;
 	font-weight: 650;
 	text-align: center;
 	.cr-ellipsis();
-	max-width: 100%;
+
+	.many & {
+		font-size: 30px;
+	}
 }
 
 .editButton {
-	margin-top: 10px;
+	flex: none;
+	margin: 0 0 0 8px !important;
 }
 
 .footer {
 	display: flex;
 	align-items: center;
-	margin-top: 80px;
+	min-height: 64px;
+	margin-top: 72px;
 }

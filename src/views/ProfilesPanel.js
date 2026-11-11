@@ -11,7 +11,7 @@ import Profile from '../components/profile/Profile'
 import PillButton from '../components/ui/PillButton'
 import { Bone, Skeleton } from '../components/ui/Skeleton'
 import css from '../components/profile/Profile.module.less'
-import { ContactMeBtn, DevBtn, LogoutBtn, AppConfigBtn } from '../components/Buttons'
+import { ContactMeBtn, LogoutBtn, AppConfigBtn } from '../components/Buttons'
 import api from '../api'
 import { DEV_FAST_SELECT } from '../const'
 import { useNavigate, useResetHomeState } from '../hooks/navigate'
@@ -122,8 +122,6 @@ const ProfilesPanel = ({ ...rest }) => {
                                 {$L('Add')}
                             </PillButton>
                         }
-                        <AppConfigBtn mode='full' />
-                        <DevBtn />
                     </div>
                 </div>
                 :

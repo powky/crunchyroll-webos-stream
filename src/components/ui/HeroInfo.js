@@ -145,7 +145,7 @@ const Title = ({ logo, logoPending, title }) => {
  * @param {Object} obj
  * @param {Object} obj.content
  * @param {'home'|'detail'|'compact'} [obj.size]
- * @param {String} [obj.eyebrow] overrides the computed one
+ * @param {String} [obj.eyebrow] overrides the computed one; it only shows over a text title, never over a logo
  * @param {Number} [obj.lines] synopsis lines
  * @param {String} [obj.logo] title logo picture, shown instead of the title text
  * @param {Boolean} [obj.logoPending] the logo is still being looked up: keep its room empty, no text in between
@@ -161,7 +161,7 @@ const HeroInfo = ({ content, size = 'home', eyebrow, lines = 3, logo, logoPendin
 
     return (
         <div className={classNames(css.hero, css[size], className)}>
-            {top && <div className={css.eyebrow}>{top}</div>}
+            {top && !logo && !logoPending && <div className={css.eyebrow}>{top}</div>}
             <Title logo={logo} logoPending={logoPending} title={title} />
             {subtitle && subtitle !== title && <div className={css.subtitle}>{subtitle}</div>}
             {(maturity || parts.length > 0 || rating) &&

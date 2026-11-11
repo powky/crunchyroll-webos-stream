@@ -166,7 +166,7 @@ const HomePanel = (props) => {
         <Panel {...props} className={classNames(props.className, css.homePanel)}>
             {loading && currentActivity === 0 &&
                 <div className={css.loading}>
-                    <SkeletonHero className={css.loadingHero} />
+                    <SkeletonHero className={css.loadingHero} eyebrow={false} />
                     <div className={css.loadingRow}>
                         <Skeleton><Bone w={260} h={28} r={8} /></Skeleton>
                         <SkeletonCards width={384} className={css.loadingCards} />

@@ -108,11 +108,11 @@ SkeletonGrid.propTypes = {
     mode: PropTypes.oneOf(['wide', 'tall']),
 }
 
-/** placeholder of a hero: eyebrow, title, metadata and three lines of synopsis */
-export const SkeletonHero = ({ className, style }) => (
+/** placeholder of a hero: title, metadata and three lines of synopsis (and an eyebrow over the title) */
+export const SkeletonHero = ({ className, style, eyebrow = true }) => (
     <Skeleton className={className} style={style}>
-        <Bone w={140} h={18} r={6} />
-        <Bone w={560} h={72} r={12} style={{ marginTop: 18 }} />
+        {eyebrow && <Bone w={140} h={18} r={6} style={{ marginBottom: 18 }} />}
+        <Bone w={560} h={72} r={12} />
         <Bone w={420} h={26} r={8} style={{ marginTop: 26 }} />
         <Bone w={780} h={22} r={6} style={{ marginTop: 28 }} />
         <Bone w={740} h={22} r={6} style={{ marginTop: 14 }} />
@@ -123,6 +123,7 @@ export const SkeletonHero = ({ className, style }) => (
 SkeletonHero.propTypes = {
     className: PropTypes.string,
     style: PropTypes.object,
+    eyebrow: PropTypes.bool,
 }
 
 /**

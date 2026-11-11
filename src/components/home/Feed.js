@@ -137,11 +137,11 @@ const HeroArea = ({ setterRef }) => {
                 variant='home' />
             <div className={css.hero}>
                 {content &&
-                    <HeroInfo content={content} logo={pickLogo(art)} lines={3}>
+                    <HeroInfo content={content} eyebrow='' logo={pickLogo(art)} lines={3}>
                         <Resume content={content} />
                     </HeroInfo>
                 }
-                {!content && <SkeletonHero style={{ paddingTop: 40 }} />}
+                {!content && <SkeletonHero eyebrow={false} style={{ paddingTop: 40 }} />}
             </div>
         </>
     )

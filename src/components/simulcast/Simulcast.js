@@ -1,8 +1,6 @@
 
 import { useCallback, useState, useEffect, useMemo } from 'react'
-import { Cell, Row, Column } from '@enact/ui/Layout'
 import PillButton from '../ui/PillButton'
-import LabeledItem from '@enact/moonstone/LabeledItem'
 import Dropdown from '@enact/moonstone/Dropdown'
 import PropTypes from 'prop-types'
 
@@ -148,63 +146,45 @@ const Simulcast = ({ profile, title, ...rest }) => {
     }, [profile, changeContentList, onFilter])
 
     return (
-        <Row className={css.ContentGrid} {...rest}>
-            <Column>
-                <Cell shrink>
-                    <Row>
-                        <Cell shrink>
-                            <Dropdown title={$L('Order')}
-                                selected={orderLabels.findIndex(i => i.key === sort)}
-                                width='small'
-                                onSelect={onSelectOrder}
-                                onKeyDown={dropdownKeydown}
-                                showCloseButton>
-                                {orderStr}
-                            </Dropdown>
-                        </Cell>
-                        <Cell shrink>
-                            <Dropdown title={$L('Presentation')}
-                                selected={viewModeLabels.findIndex(i => i.key === viewMode)}
-                                width='small'
-                                onSelect={onSelectViewMode}
-                                onKeyDown={dropdownKeydown}
-                                showCloseButton>
-                                {viewModeStr}
-                            </Dropdown>
-                        </Cell>
-                        {season && season.index + 1 < seasons.length &&
-                            <Cell shrink>
-                                <PillButton small icon='back' onClick={prevSeason}>{$L('Prev Season')}</PillButton>
-                            </Cell>
-                        }
-                        <Cell shrink>
-                            <LabeledItem>
-                                {title}
-                                {season && season.localization.title && ' - '}
-                                {season && season.localization.title}
-                            </LabeledItem >
-                        </Cell>
-                        {season && season.index - 1 >= 0 &&
-                            <Cell shrink>
-                                <PillButton small icon='chevronRight' onClick={nextSeason}>{$L('Next Season')}</PillButton>
-                            </Cell>
-                        }
-                    </Row>
-                </Cell>
-                <Cell grow>
-                    <Row className={css.scrollerContainer}>
-                        <Cell grow>
-                            <ContentGridItems
-                                type='simulcast'
-                                contentList={contentListSorted}
-                                load={onLoad}
-                                onSelect={setLocalContent}
-                                autoScroll={autoScroll} />
-                        </Cell>
-                    </Row>
-                </Cell>
-            </Column>
-        </Row>
+        <div className={css.ContentGrid} {...rest}>
+            <div className={css.header}>
+                <Dropdown title={$L('Order')}
+                    className={css.filter}
+                    selected={orderLabels.findIndex(i => i.key === sort)}
+                    width='small'
+                    onSelect={onSelectOrder}
+                    onKeyDown={dropdownKeydown}>
+                    {orderStr}
+                </Dropdown>
+                <Dropdown title={$L('Presentation')}
+                    className={css.filter}
+                    selected={viewModeLabels.findIndex(i => i.key === viewMode)}
+                    width='small'
+                    onSelect={onSelectViewMode}
+                    onKeyDown={dropdownKeydown}>
+                    {viewModeStr}
+                </Dropdown>
+                {season && season.index + 1 < seasons.length &&
+                    <PillButton small round icon='back' aria-label={$L('Prev Season')} onClick={prevSeason} />
+                }
+                <div className={css.seasonTitle}>
+                    {season && season.localization.title ? season.localization.title : title}
+                </div>
+                {season && season.index - 1 >= 0 &&
+                    <PillButton small round icon='chevronRight' aria-label={$L('Next Season')} onClick={nextSeason} />
+                }
+            </div>
+            <div className={css.scrollerContainer}>
+                <ContentGridItems
+                    type='simulcast'
+                    mode='wide'
+                    dates
+                    contentList={contentListSorted}
+                    load={onLoad}
+                    onSelect={setLocalContent}
+                    autoScroll={autoScroll} />
+            </div>
+        </div>
     )
 }
 

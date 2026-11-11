@@ -1,0 +1,27 @@
+@import (reference) '../../theme/tokens.less';
+
+.row {
+	height: 56px;
+	overflow: hidden;
+
+	&.fadeLeft {
+		-webkit-mask-image: linear-gradient(to right, transparent, #000 64px);
+	}
+
+	&.fadeRight {
+		-webkit-mask-image: linear-gradient(to left, transparent, #000 64px);
+	}
+
+	&.fadeLeft.fadeRight {
+		-webkit-mask-image: linear-gradient(to right, transparent, #000 64px, #000 calc(100% - 64px), transparent);
+	}
+}
+
+.inner {
+	display: flex;
+	align-items: center;
+	height: 56px;
+	white-space: nowrap;
+	.cr-layer();
+	transition: transform 200ms @cr-ease;
+}

@@ -10,6 +10,7 @@ import LoadingList from '../LoadingList'
 import Card, { cardHeight, CARD_LIFT } from '../ui/Card'
 import { CardBone, Skeleton, SkeletonGrid } from '../ui/Skeleton'
 import { pickImage } from '../ui/images'
+import { getCardSubtitle } from '../home/FeedRow'
 import { useViewBackup } from '../../hooks/viewBackup'
 
 
@@ -23,16 +24,18 @@ import { useViewBackup } from '../../hooks/viewBackup'
  * @param {Boolean} [obj.autoScroll]
  * @param {Function} [obj.onFocus]
  * @param {'tall'|'wide'} [obj.mode]
+ * @param {Boolean} [obj.dates] under the title, when it was last published (simulcasts) instead of year and seasons
  * @param {Function} [obj.onLeave]
  */
-const ContentGridItems = ({ type, contentList, onSelect, load, autoScroll = true, onFocus, mode = 'tall', ...rest }) => {
+const ContentGridItems = ({ type, contentList, onSelect, load, autoScroll = true, onFocus, mode = 'tall', dates,
+    ...rest }) => {
     const { viewBackup, viewBackupRef } = useViewBackup(`contentGridItems-${type}`)
     /** @type {{current: Function}} */
     const scrollToRef = useRef(null)
     /** @type {{current: Number}} */
     const rowIndexRef = useRef(viewBackup?.rowIndex || 0)
-    /** artwork width; cells add the card's 16px focus margin on each side and two lines of text */
-    const cardWidth = mode === 'tall' ? 232 : 352
+    /** artwork width (wide ones as on the home rows); cells add the card's focus margin and two lines of text */
+    const cardWidth = mode === 'tall' ? 232 : 384
     /** @type {[Number, Number]} */
     const [itemHeight, itemWidth] = useMemo(() => {
         return [ri.scale(CARD_LIFT + cardHeight(cardWidth, mode) + 80), ri.scale(cardWidth + 2 * CARD_LIFT)]
@@ -59,7 +62,7 @@ const ContentGridItems = ({ type, contentList, onSelect, load, autoScroll = true
         const contentItem = contentList[index]
         if (contentItem) {
             /** @type {String} */
-            let dateStr = contentItem.last_public && dateFmt.format(new Date(contentItem.last_public)) || ''
+            let dateStr = dates && contentItem.last_public && dateFmt.format(new Date(contentItem.last_public)) || ''
             dateStr = dateStr.endsWith('.') ? dateStr.slice(0, -1) : dateStr
             out = (
                 <Card
@@ -69,7 +72,7 @@ const ContentGridItems = ({ type, contentList, onSelect, load, autoScroll = true
                     width={cardWidth}
                     mode={mode}
                     title={(contentItem.title || '').replace(/\n/g, '')}
-                    subtitle={dateStr || (contentItem.description || '').replace(/\n/g, ' ')}
+                    subtitle={dateStr || getCardSubtitle(contentItem) || (contentItem.description || '').replace(/\n/g, ' ')}
                     onClick={onSelectItem}
                     onFocus={onFocus}
                 />
@@ -85,7 +88,7 @@ const ContentGridItems = ({ type, contentList, onSelect, load, autoScroll = true
             )
         }
         return out
-    }, [contentList, cardWidth, onSelectItem, onFocus, load, mode, dateFmt])
+    }, [contentList, cardWidth, onSelectItem, onFocus, load, mode, dateFmt, dates])
 
     useEffect(() => {
         let interval = null
@@ -113,7 +116,7 @@ const ContentGridItems = ({ type, contentList, onSelect, load, autoScroll = true
             scrollFn={scrollToRef.current}
             skeleton={<SkeletonGrid width={cardWidth} mode={mode} columns={mode === 'tall' ? 6 : 4} rows={2} />}>
             {contentList && contentList.length > 0 &&
-                <VirtualGridList {...rest}
+                <VirtualGridList verticalScrollbar='hidden' {...rest}
                     dataSize={contentList.length}
                     itemRenderer={renderItem}
                     itemSize={{ minHeight: itemHeight, minWidth: itemWidth }}
@@ -134,6 +137,7 @@ ContentGridItems.propTypes = {
     ]),
     autoScroll: PropTypes.bool,
     mode: PropTypes.oneOf(['tall', 'wide']),
+    dates: PropTypes.bool,
     load: PropTypes.func,
     onFocus: PropTypes.func,
 }

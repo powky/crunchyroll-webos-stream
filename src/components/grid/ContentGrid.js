@@ -1,7 +1,5 @@
 
 import { useCallback, useState, useEffect, useMemo } from 'react'
-import { Cell, Row, Column } from '@enact/ui/Layout'
-import Heading from '@enact/moonstone/Heading'
 import Input from '@enact/moonstone/Input'
 import Dropdown from '@enact/moonstone/Dropdown'
 import PropTypes from 'prop-types'
@@ -32,7 +30,8 @@ import { $L } from '../../hooks/language'
  */
 
 /**
- * All content grid and search
+ * All content grid and search, tvOS style: a search field and the filters on top, genres as a row of pills, and the
+ * results as wide cards like the home rows
  * @param {Object} obj
  * @param {import('crunchyroll-js-api').Types.Profile} obj.profile current profile
  * @param {String} obj.title title for view
@@ -139,65 +138,46 @@ const ContentGrid = ({ profile, title, contentKey, contentType, engine = 'browse
     }, [profile, changeContentList, onFilter, contentKey])
 
     return (
-        <Row className={css.ContentGrid} {...rest}>
-            <Column>
-                <Cell shrink>
-                    <Row>
-                        <Cell shrink>
-                            <Heading>
-                                {title}
-                            </Heading>
-                        </Cell>
-                        <Cell shrink>
-                            <Input placeholder={$L('Search')}
-                                value={query}
-                                onChange={onSearch}
-                                iconAfter="search" />
-                        </Cell>
-                        <Cell shrink>
-                            <Dropdown title={$L('Order')}
-                                selected={orderLabels.findIndex(i => i.key === sort)}
-                                width='small'
-                                onSelect={onSelectOrder}
-                                onKeyDown={dropdownKeydown}
-                                showCloseButton>
-                                {orderStr}
-                            </Dropdown>
-                        </Cell>
-                        <Cell shrink>
-                            <Dropdown title={$L('Presentation')}
-                                selected={viewModeLabels.findIndex(i => i.key === viewMode)}
-                                width='small'
-                                onSelect={onSelectViewMode}
-                                onKeyDown={dropdownKeydown}
-                                showCloseButton>
-                                {viewModeStr}
-                            </Dropdown>
-                        </Cell>
-                    </Row>
-                </Cell>
-                <Cell grow>
-                    <Row className={css.scrollerContainer}>
-                        {!noCategory &&
-                            <Cell size="20%">
-                                <CategoryList
-                                    category={category}
-                                    setCategory={setCategory}
-                                    setDelay={onFilter} />
-                            </Cell>
-                        }
-                        <Cell grow>
-                            <ContentGridItems
-                                type={contentKey}
-                                contentList={contentList}
-                                load={onLoad}
-                                onSelect={setLocalContent}
-                                autoScroll={autoScroll} />
-                        </Cell>
-                    </Row>
-                </Cell>
-            </Column>
-        </Row>
+        <div className={css.ContentGrid} aria-label={title} {...rest}>
+            <div className={css.header}>
+                <Input className={css.search}
+                    placeholder={$L('Search')}
+                    value={query}
+                    onChange={onSearch}
+                    iconBefore='search' />
+                <Dropdown title={$L('Order')}
+                    className={css.filter}
+                    selected={orderLabels.findIndex(i => i.key === sort)}
+                    width='small'
+                    onSelect={onSelectOrder}
+                    onKeyDown={dropdownKeydown}>
+                    {orderStr}
+                </Dropdown>
+                <Dropdown title={$L('Presentation')}
+                    className={css.filter}
+                    selected={viewModeLabels.findIndex(i => i.key === viewMode)}
+                    width='small'
+                    onSelect={onSelectViewMode}
+                    onKeyDown={dropdownKeydown}>
+                    {viewModeStr}
+                </Dropdown>
+            </div>
+            {!noCategory &&
+                <CategoryList className={css.categories}
+                    category={category}
+                    setCategory={setCategory}
+                    setDelay={onFilter} />
+            }
+            <div className={css.scrollerContainer}>
+                <ContentGridItems
+                    type={contentKey}
+                    mode='wide'
+                    contentList={contentList}
+                    load={onLoad}
+                    onSelect={setLocalContent}
+                    autoScroll={autoScroll} />
+            </div>
+        </div>
     )
 }
 

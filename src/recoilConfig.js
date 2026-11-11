@@ -81,3 +81,17 @@ export const uiLanguageState = atom({
     default: 'auto',
     effects: [localStorageEffect('uiLanguage')]
 })
+
+/** tabs of the top bar the user chose to hide (by key: simulcast, series, movies, musics, my_list) */
+export const hiddenTabsState = atom({
+    key: 'hiddenTabsState',
+    default: [],
+    effects: [localStorageEffect('hiddenTabs')]
+})
+
+/** the top bar's clock: '24' or '12' (with a.m. / p.m.) */
+export const clockFormatState = atom({
+    key: 'clockFormatState',
+    default: '24',
+    effects: [localStorageEffect('clockFormat')]
+})

@@ -191,5 +191,14 @@
     "About": "Acerca de",
     "Settings": "Ajustes",
     "Featured": "Destacados",
-    "Crunchyroll took too long to answer. Try again.": "Crunchyroll tardó demasiado en responder. Inténtalo de nuevo."
+    "Crunchyroll took too long to answer. Try again.": "Crunchyroll tardó demasiado en responder. Inténtalo de nuevo.",
+    "Exit": "Salir",
+    "AM": "a. m.",
+    "PM": "p. m.",
+    "Clock": "Reloj",
+    "24-hour": "24 horas",
+    "12-hour (a.m. / p.m.)": "12 horas (a. m. / p. m.)",
+    "Top bar": "Barra superior",
+    "Show": "Mostrar",
+    "Hide": "Ocultar"
 }

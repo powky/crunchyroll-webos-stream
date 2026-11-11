@@ -5,7 +5,7 @@ import ContextualPopupDecorator from '@enact/moonstone/ContextualPopupDecorator'
 import PropTypes from 'prop-types'
 
 import SubtitleList from './SubtitleList'
-import { usePlayerPopup } from '../../hooks/playerPopup'
+import { usePopupMenu } from '../../hooks/popupMenu'
 
 const IconButtonWithPopup = ContextualPopupDecorator(IconButton)
 
@@ -18,7 +18,7 @@ const IconButtonWithPopup = ContextualPopupDecorator(IconButton)
  * @param {Function} [obj.triggerActivity]
  */
 const SubtitleSelect = ({ subtitles, subtitle, selectSubtitle, triggerActivity, ...rest }) => {
-    const { open, toggle, close } = usePlayerPopup()
+    const { open, toggle, close } = usePopupMenu()
 
     const onSelectSubtitle = useCallback(({ selected }) => {
         selectSubtitle(selected)

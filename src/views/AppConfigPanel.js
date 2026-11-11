@@ -14,7 +14,7 @@ import { useNavigate } from '../hooks/navigate'
 import { useSaveOneProfileField } from '../hooks/profile'
 import { initCache } from '../hooks/customFetch'
 import { syncFonts, getFonts } from '../hooks/fonts'
-import { currentProfileState, uiLanguageState } from '../recoilConfig'
+import { currentProfileState, uiLanguageState, hiddenTabsState, clockFormatState } from '../recoilConfig'
 import api from '../api'
 import { clearSeriesArt } from '../hooks/seriesArt'
 
@@ -61,6 +61,10 @@ const AppConfigPanel = ({ noButtons, ...rest }) => {
     const [fontList, setFontList] = useState([])
     const [askLogout, setAskLogout] = useState(false)
     const [language, setLanguage] = useRecoilState(uiLanguageState)
+    /** @type {[Array<String>, Function]} */
+    const [hiddenTabs, setHiddenTabs] = useRecoilState(hiddenTabsState)
+    /** @type {['24'|'12', Function]} */
+    const [clockFormat, setClockFormat] = useRecoilState(clockFormatState)
     const [profile, setProfile] = useRecoilState(currentProfileState)
     /** @type {[{content: Array, audio: Array, subtitle: Array}, Function]} */
     const [profileLangs, setProfileLangs] = useState(null)
@@ -149,6 +153,11 @@ const AppConfigPanel = ({ noButtons, ...rest }) => {
         }
     }, [profile, mapLang, language])
 
+    /** a top bar tab shown or hidden */
+    const setTabShown = useCallback((key, value) => {
+        setHiddenTabs(old => (value === 'hide' ? [...old.filter(k => k !== key), key] : old.filter(k => k !== key)))
+    }, [setHiddenTabs])
+
     const sections = useMemo(() => {
         const out = [{
             title: $L('Playback'),
@@ -185,7 +194,20 @@ const AppConfigPanel = ({ noButtons, ...rest }) => {
             }, {
                 key: 'ui', icon: 'sparkles', label: $L('Interface'), value: appConfig.ui, onChange: saveUI,
                 options: [{ value: 'full', label: $L('Full') }, { value: 'lite', label: $L('Lite') }],
+            }, {
+                key: 'clock', icon: 'clock', label: $L('Clock'), value: clockFormat, onChange: setClockFormat,
+                options: [{ value: '24', label: $L('24-hour') }, { value: '12', label: $L('12-hour (a.m. / p.m.)') }],
             }],
+        }, {
+            title: $L('Top bar'),
+            rows: [
+                ['simulcast', 'tv', $L('Simulcast')], ['series', 'film', $L('Series')], ['movies', 'film', $L('Movies')],
+                ['musics', 'note', $L('Music')], ['my_list', 'heart', $L('My List')],
+            ].map(([key, icon, label]) => ({
+                key: `tab-${key}`, icon, label, value: hiddenTabs.includes(key) ? 'hide' : 'show',
+                onChange: value => setTabShown(key, value),
+                options: [{ value: 'show', label: $L('Show') }, { value: 'hide', label: $L('Hide') }],
+            })),
         }, {
             title: $L('Language'),
             rows: [{
@@ -194,7 +216,7 @@ const AppConfigPanel = ({ noButtons, ...rest }) => {
             }],
         }]
         if (profileLangs) {
-            out[2].rows.push({
+            out[3].rows.push({
                 key: 'contentLang', icon: 'textSize', label: $L('Titles and descriptions'),
                 value: profile.preferred_communication_language, options: profileLangs.content, onChange: saveContentLang,
             }, {
@@ -229,7 +251,7 @@ const AppConfigPanel = ({ noButtons, ...rest }) => {
         return out
     }, [appConfig, language, profile, profileLangs, isLogged, loadingFonts, fontList, saveVideo, saveSubtitle,
         savePreview, saveHomeFirst, saveUI, setLanguage, saveContentLang, saveAudioLang, saveSubtitleLang, saveCache,
-        doSyncFonts, openDeveloper, openAbout, openLogout])
+        doSyncFonts, openDeveloper, openAbout, openLogout, clockFormat, setClockFormat, hiddenTabs, setTabShown])
 
     return (
         <Panel {...rest} className={classNames(rest.className, css.settingsPanel, { [css.embedded]: noButtons })}>

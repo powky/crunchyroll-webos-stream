@@ -9,7 +9,7 @@ import PropTypes from 'prop-types'
 
 import api from '../../api'
 import { updateSubtitleSettings } from '../../hooks/subtitleLocal'
-import { usePlayerPopup } from '../../hooks/playerPopup'
+import { usePopupMenu } from '../../hooks/popupMenu'
 
 const IconButtonWithPopup = ContextualPopupDecorator(IconButton)
 
@@ -124,7 +124,7 @@ Panel.propTypes = {
  * @param {Function} obj.triggerActivity
  */
 const SubtitleStyleSelect = ({ triggerActivity, ...rest }) => {
-    const { open, toggle, close } = usePlayerPopup()
+    const { open, toggle, close } = usePopupMenu()
 
     const panel = useCallback(() => (
         <Panel triggerActivity={triggerActivity} />

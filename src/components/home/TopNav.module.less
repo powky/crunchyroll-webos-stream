@@ -49,10 +49,49 @@
 	font-variant-numeric: tabular-nums;
 }
 
+.ampm {
+	margin-left: 6px;
+	font-size: 20px;
+	font-weight: 600;
+}
+
+// the avatar is a button: it lifts and rings like a profile picture when focused
+.avatarButton {
+	width: 52px;
+	height: 52px;
+	border-radius: 50%;
+	outline: none;
+	.cr-layer();
+	transition: transform 160ms @cr-ease;
+
+	&:focus {
+		transform: scale(1.15);
+		box-shadow: 0 0 0 3px @cr-text;
+	}
+}
+
 .avatar {
+	display: block;
 	width: 52px;
 	height: 52px;
 	border-radius: 50%;
 	object-fit: cover;
 	background: @cr-surface;
+}
+
+// the avatar's menu, inside moonstone's (glass) contextual popup
+.menu {
+	display: flex;
+	flex-direction: column;
+	min-width: 300px;
+	padding: 4px;
+}
+
+.menuItem {
+	margin: 0;
+	justify-content: flex-start;
+
+	& + & {
+		margin-top: 4px;
+	}
 }

@@ -19,11 +19,12 @@ const swallowBackKeyUp = () => {
 }
 
 /**
- * Open state of a pop-up menu over the video controls. Back closes the pop-up and only it (the controls stay); every
- * other way of closing it (choosing, the close button, leaving it) may fire more than once, so closing is idempotent.
+ * Open state of a pop-up menu (the player's subtitle and audio menus, the avatar's menu). Back closes the pop-up and
+ * only it (the video controls stay, the app doesn't ask to exit); every other way of closing it (choosing, leaving it)
+ * may fire more than once, so closing is idempotent.
  * @returns {{open: Boolean, toggle: Function, close: Function}}
  */
-export const usePlayerPopup = () => {
+export const usePopupMenu = () => {
     const { pushHistory, popHistory } = useNavigate()
     /** @type {[Boolean, Function]} */
     const [open, setOpen] = useState(false)
@@ -52,7 +53,7 @@ export const usePlayerPopup = () => {
         }
     }, [close, pushHistory])
 
-    useEffect(() => () => {  // the player went away with it open: drop its Back entry
+    useEffect(() => () => {  // the screen went away with it open: drop its Back entry
         if (openRef.current) {
             popHistory()
         }

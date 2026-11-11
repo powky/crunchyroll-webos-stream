@@ -1,20 +1,36 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import SpotlightContainerDecorator from '@enact/spotlight/SpotlightContainerDecorator'
+import Spottable from '@enact/spotlight/Spottable'
+import ContextualPopupDecorator from '@enact/moonstone/ContextualPopupDecorator'
+import { useRecoilValue } from 'recoil'
 import PropTypes from 'prop-types'
 
 import PillButton from '../ui/PillButton'
 import logo from '../../../assets/img/crunchyroll-logo.svg'
 import api from '../../api'
+import { $L } from '../../hooks/language'
 import { useStoredImage } from '../../hooks/imageStore'
+import { usePopupMenu } from '../../hooks/popupMenu'
+import { clockFormatState, hiddenTabsState } from '../../recoilConfig'
 import kidImg from '../../../assets/img/child.jpg'
 import css from './TopNav.module.less'
 
 
-/** tabs drawn as icons only, at the end of the bar */
-const ICON_TABS = { search: 'search', config: 'gear', info: 'info', close: 'power' }
+/** the bar ends with the search icon; settings, about and exit are in the avatar's menu */
+const ICON_TABS = { search: 'search' }
+/** the avatar menu's entries: tab key -> icon and label */
+const MENU_TABS = {
+    config: { icon: 'gear', label: () => $L('Settings') },
+    info: { icon: 'info', label: () => $L('About') },
+    close: { icon: 'power', label: () => $L('Exit') },
+}
+
+const AvatarButton = ContextualPopupDecorator(Spottable('div'))
 
 /** minutes resolution: one repaint a minute, of the clock's own small layer */
 const Clock = () => {
+    /** @type {'24'|'12'} */
+    const format = useRecoilValue(clockFormatState)
     const [now, setNow] = useState(new Date())
     useEffect(() => {
         let interval = null
@@ -27,9 +43,68 @@ const Clock = () => {
             clearInterval(interval)
         }
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
-    const hours = `${now.getHours()}`.padStart(2, '0')
     const minutes = `${now.getMinutes()}`.padStart(2, '0')
-    return <div className={css.clock}>{`${hours}:${minutes}`}</div>
+    if (format === '12') {
+        const hours = now.getHours() % 12 || 12
+        return (
+            <div className={css.clock}>
+                {`${hours}:${minutes}`}
+                <span className={css.ampm}>{now.getHours() < 12 ? $L('AM') : $L('PM')}</span>
+            </div>
+        )
+    }
+    return <div className={css.clock}>{`${`${now.getHours()}`.padStart(2, '0')}:${minutes}`}</div>
+}
+
+/**
+ * The profile's avatar, as a button: opens a small menu with the settings, about and exit
+ * @param {Object} obj
+ * @param {String} obj.src
+ * @param {Array<{key: String, index: Number}>} obj.items
+ * @param {Function} obj.onClick gets the chosen entry's event (its tab index in `data-index`)
+ */
+const AvatarMenu = ({ src, items, onClick }) => {
+    const { open, toggle, close } = usePopupMenu()
+
+    const choose = useCallback((ev) => {
+        close()
+        onClick(ev)
+    }, [close, onClick])
+
+    const menu = useCallback(() => (
+        <div className={css.menu}>
+            {items.map(item => (
+                <PillButton plain key={item.key}
+                    className={css.menuItem}
+                    icon={MENU_TABS[item.key].icon}
+                    data-index={item.index}
+                    onClick={choose}>
+                    {MENU_TABS[item.key].label()}
+                </PillButton>
+            ))}
+        </div>
+    ), [items, choose])
+
+    return (
+        <AvatarButton
+            className={`cr-own ${css.avatarButton}`}
+            role='button'
+            aria-label={$L('Settings')}
+            open={open}
+            onClick={toggle}
+            onClose={close}
+            popupComponent={menu}
+            direction='down'
+            spotlightRestrict='self-only'>
+            <img className={css.avatar} src={src} alt='' />
+        </AvatarButton>
+    )
+}
+
+AvatarMenu.propTypes = {
+    src: PropTypes.string,
+    items: PropTypes.arrayOf(PropTypes.object).isRequired,
+    onClick: PropTypes.func.isRequired,
 }
 
 /**
@@ -42,8 +117,12 @@ const Clock = () => {
  */
 const TopNavBase = ({ toolbarList, currentIndex, onClick, profile, ...rest }) => {
     const items = toolbarList.map((item, index) => ({ ...item, index }))
-    const textTabs = items.filter(item => !ICON_TABS[item.key])
+    /** @type {Array<String>} */
+    const hiddenTabs = useRecoilValue(hiddenTabsState)
+    const textTabs = items.filter(item => !ICON_TABS[item.key] && !MENU_TABS[item.key] &&
+        (!hiddenTabs.includes(item.key) || item.index === currentIndex))
     const iconTabs = items.filter(item => ICON_TABS[item.key])
+    const menuTabs = items.filter(item => MENU_TABS[item.key])
     const storedAvatar = useStoredImage(profile && profile.avatar ? api.assets.getAvatarUrl(profile.avatar) : null)
     const avatar = profile && profile.avatar ? storedAvatar : kidImg
 
@@ -76,7 +155,7 @@ const TopNavBase = ({ toolbarList, currentIndex, onClick, profile, ...rest }) =>
             </div>
             <div className={css.right}>
                 <Clock />
-                <img className={css.avatar} src={avatar} alt='' />
+                <AvatarMenu src={avatar} items={menuTabs} onClick={onClick} />
             </div>
         </div>
     )

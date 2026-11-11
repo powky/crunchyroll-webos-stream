@@ -8,7 +8,7 @@ import api from '../api'
  */
 export const useSaveProfile = ({ profile, setProfile }) => {
     return async (newValue) => {
-        await api.account.updateProfile(newValue)
+        await api.account.updateProfile(profile.profile_id, newValue)
         setProfile({ ...profile, ...newValue })
     }
 }

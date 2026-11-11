@@ -1,0 +1,122 @@
+@import (reference) '../../theme/tokens.less';
+
+.hero {
+	position: relative;
+	font-family: @cr-font;
+	color: @cr-text;
+}
+
+.eyebrow {
+	color: @cr-accent;
+	font-size: 19px;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+.title {
+	margin: 12px 0 0;
+	font-size: 80px;
+	line-height: 1.02;
+	font-weight: 800;
+	letter-spacing: -0.035em;
+	.cr-clamp(2);
+}
+
+.home .title {
+	font-size: 68px;
+}
+
+.detail .title {
+	font-size: 76px;
+}
+
+.subtitle {
+	margin-top: 12px;
+	color: rgba(245, 245, 247, 0.86);
+	font-size: 28px;
+	font-weight: 600;
+	letter-spacing: -0.015em;
+	.cr-ellipsis();
+}
+
+.meta {
+	margin-top: 20px;
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	color: @cr-muted;
+	font-size: 22px;
+	font-weight: 500;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.chip {
+	flex: none;
+	padding: 2px 10px;
+	border: 2px solid rgba(235, 235, 245, 0.45);
+	border-radius: 7px;
+	font-size: 18px;
+	font-weight: 700;
+}
+
+.part {
+	display: flex;
+	align-items: center;
+	flex: none;
+}
+
+.sep {
+	display: block;
+	width: 5px;
+	height: 5px;
+	margin: 0 14px;
+	border-radius: 50%;
+	background: @cr-faint;
+}
+
+.star {
+	color: @cr-star;
+}
+
+.description {
+	margin-top: 20px;
+	color: @cr-muted;
+	font-size: 25px;
+	line-height: 1.45;
+	.cr-clamp(3);
+}
+
+// above lists, in popups and the player's info
+.compact {
+	.eyebrow {
+		font-size: 17px;
+	}
+
+	.title {
+		margin-top: 8px;
+		font-size: 52px;
+		letter-spacing: -0.03em;
+	}
+
+	.subtitle {
+		margin-top: 8px;
+		font-size: 24px;
+	}
+
+	.meta {
+		margin-top: 14px;
+		font-size: 20px;
+	}
+
+	.chip {
+		font-size: 16px;
+	}
+
+	.description {
+		margin-top: 14px;
+		font-size: 22px;
+		line-height: 1.42;
+	}
+}

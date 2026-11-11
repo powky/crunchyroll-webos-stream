@@ -1,6 +1,4 @@
 
-import { Row, Column } from '@enact/ui/Layout'
-import Heading from '@enact/moonstone/Heading'
 import IconButton from '@enact/moonstone/IconButton'
 import Image from '@enact/moonstone/Image'
 import PropTypes from 'prop-types'
@@ -25,28 +23,23 @@ const ImageNavigable = withNavigable(Image, css.profileFocus)
 const Profile = ({ profile, onSelectProfile, onEditProfile, compRef, ...rest }) => {
 
     return (
-        <Column className={css.profile} {...rest}>
-            <Row align="center center">
-                <Column align="center center">
-                    <ImageNavigable
-                        data-profile-id={profile.profile_id}
-                        className={css.profileImg}
-                        src={profile.avatar && api.assets.getAvatarUrl(profile.avatar) || kidImg}
-                        alt={$L('Profile Picture')}
-                        onClick={onSelectProfile}
-                        ref={compRef} />
-                    <Heading size="medium">
-                        {profile.profile_name}
-                    </Heading>
-                </Column>
-            </Row>
-            <Row className={css.editButton} align="center center">
-                <IconButton data-profile-id={profile.profile_id}
-                    onClick={onEditProfile}>
-                    edit
-                </IconButton>
-            </Row>
-        </Column>
+        <div className={css.profile} {...rest}>
+            <ImageNavigable
+                data-profile-id={profile.profile_id}
+                className={`cr-own ${css.profileImg}`}
+                src={profile.avatar && api.assets.getAvatarUrl(profile.avatar) || kidImg}
+                alt={$L('Profile Picture')}
+                onClick={onSelectProfile}
+                ref={compRef} />
+            <div className={css.name}>{profile.profile_name}</div>
+            <IconButton data-profile-id={profile.profile_id}
+                className={css.editButton}
+                size='small'
+                backgroundOpacity='transparent'
+                onClick={onEditProfile}>
+                edit
+            </IconButton>
+        </div>
     )
 }
 

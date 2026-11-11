@@ -1,0 +1,57 @@
+@import (reference) '../../theme/tokens.less';
+
+.topNav {
+	position: absolute;
+	top: 40px;
+	left: @cr-pad;
+	right: @cr-pad;
+	height: 64px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	font-family: @cr-font;
+	z-index: 10;
+	.cr-layer();
+}
+
+.brand {
+	display: flex;
+	align-items: center;
+	width: 300px;
+}
+
+.logo {
+	display: block;
+	height: 38px;
+}
+
+.tabs {
+	display: flex;
+	align-items: center;
+	padding: 6px 0 6px 6px;
+	border-radius: 999px;
+	background: rgba(28, 28, 32, 0.78);
+}
+
+.right {
+	width: 300px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.clock {
+	margin-right: 22px;
+	color: @cr-text;
+	font-size: 28px;
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+}
+
+.avatar {
+	width: 52px;
+	height: 52px;
+	border-radius: 50%;
+	object-fit: cover;
+	background: @cr-surface;
+}

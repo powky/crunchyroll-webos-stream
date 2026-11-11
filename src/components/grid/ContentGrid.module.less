@@ -9,9 +9,32 @@
     }
 
     .scrollerContainer {
+        position: relative;
         margin-top: 0.5rem;
         margin-bottom: 0.5rem;
         height: calc(100% - 1rem);
+
+        // rows scrolling in and out fade at the edges instead of being cut: static overlays, painted once
+        &::before,
+        &::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 48px;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        &::before {
+            top: 0;
+            background: linear-gradient(180deg, #0b0b0e 0%, rgba(11, 11, 14, 0) 100%);
+        }
+
+        &::after {
+            bottom: 0;
+            background: linear-gradient(0deg, #0b0b0e 0%, rgba(11, 11, 14, 0) 100%);
+        }
     }
 
     .iconActive {

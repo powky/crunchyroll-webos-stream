@@ -1,0 +1,36 @@
+@import (reference) '../../theme/tokens.less';
+
+// full screen like the home feed: the search sits under the tab bar, the feed's hero a little lower
+.music {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1920px;
+	height: 1080px;
+	font-family: @cr-font;
+}
+
+.header {
+	position: absolute;
+	top: @cr-top;
+	left: @cr-pad;
+	display: flex;
+	align-items: center;
+	z-index: 5;
+}
+
+.title {
+	margin: 0 24px 0 0;
+	color: @cr-text;
+	font-size: 34px;
+	font-weight: 800;
+	letter-spacing: -0.02em;
+}
+
+.results {
+	position: absolute;
+	top: (@cr-top + 90px);
+	left: (@cr-pad - @cr-lift);
+	right: (@cr-pad - @cr-lift);
+	bottom: 24px;
+}

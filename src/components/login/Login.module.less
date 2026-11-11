@@ -1,17 +1,69 @@
+@import (reference) '../../theme/tokens.less';
 
-@import (reference) '@enact/moonstone/styles/colors.less';
+.loginPanel {
+	padding: 0 !important;
+	background:
+		radial-gradient(ellipse 1300px 720px at 50% -12%, fade(@cr-accent, 16%) 0%, fade(@cr-accent, 0%) 70%),
+		@cr-bg;
+	font-family: @cr-font;
+}
 
+.corner {
+	position: absolute;
+	top: 40px;
+	right: @cr-pad;
+	display: flex;
+	z-index: 2;
+}
+
+.center {
+	position: absolute;
+	top: 110px;
+	left: 0;
+	right: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.logo {
+	display: block;
+	height: 56px;
+}
+
+.title {
+	margin: 34px 0 0;
+	color: @cr-text;
+	font-size: 64px;
+	font-weight: 800;
+	letter-spacing: -0.035em;
+}
+
+.segmented {
+	display: flex;
+	margin: 30px 0 34px;
+	padding: 6px 0 6px 6px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.07);
+}
+
+// the email, code and QR forms
 .loginForm {
-    background-color: @moon-darker-gray;
-    padding: 1rem;
-    min-width: 23rem;
+	width: 760px;
+	min-height: 420px;
+	padding: 40px 48px;
+	border-radius: 28px;
+	background: @cr-surface;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 
-    >div {
-        margin-bottom: 1rem;
-    }
+	> * {
+		margin-bottom: 18px;
+	}
+}
 
-    >div:first-of-type {
-        margin-top: 1rem;
-    }
-
+.input {
+	width: 620px !important;
+	max-width: none !important;
 }

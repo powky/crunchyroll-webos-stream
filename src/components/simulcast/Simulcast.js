@@ -1,7 +1,7 @@
 
 import { useCallback, useState, useEffect, useMemo } from 'react'
 import { Cell, Row, Column } from '@enact/ui/Layout'
-import Button from '@enact/moonstone/Button'
+import PillButton from '../ui/PillButton'
 import LabeledItem from '@enact/moonstone/LabeledItem'
 import Dropdown from '@enact/moonstone/Dropdown'
 import PropTypes from 'prop-types'
@@ -174,7 +174,7 @@ const Simulcast = ({ profile, title, ...rest }) => {
                         </Cell>
                         {season && season.index + 1 < seasons.length &&
                             <Cell shrink>
-                                <Button onClick={prevSeason}>{$L('Prev Season')}</Button>
+                                <PillButton small icon='back' onClick={prevSeason}>{$L('Prev Season')}</PillButton>
                             </Cell>
                         }
                         <Cell shrink>
@@ -186,7 +186,7 @@ const Simulcast = ({ profile, title, ...rest }) => {
                         </Cell>
                         {season && season.index - 1 >= 0 &&
                             <Cell shrink>
-                                <Button onClick={nextSeason}>{$L('Next Season')}</Button>
+                                <PillButton small icon='chevronRight' onClick={nextSeason}>{$L('Next Season')}</PillButton>
                             </Cell>
                         }
                     </Row>

@@ -1,26 +1,34 @@
-
 import { useState, useCallback, useMemo, useEffect } from 'react'
-import { Row, Column } from '@enact/ui/Layout'
-import ri from '@enact/ui/resolution'
-import { Panel, Header } from '@enact/moonstone/Panels'
-import Heading from '@enact/moonstone/Heading'
-import Dropdown from '@enact/moonstone/Dropdown'
-import CheckboxItem from '@enact/moonstone/CheckboxItem'
-import Spinner from '@enact/moonstone/Spinner'
-import Item from '@enact/moonstone/Item'
-import ToggleButton from '@enact/moonstone/ToggleButton'
+import { Panel } from '@enact/moonstone/Panels'
+import classNames from 'classnames'
+import { useRecoilState } from 'recoil'
 
-import { ContactMeBtn, LogoutBtn, AppIconButton } from '../components/Buttons'
+import Alert from '../components/Alert'
 import PopupMessage from '../components/Popup'
-import Field from '../components/Field'
-import { dropdownKeydown } from '../components/SelectLanguage'
-import Scroller from '../patch/Scroller'
-import css from '../components/profile/Detail.module.less'
+import Icon from '../components/ui/Icons'
+import SettingsList from '../components/settings/SettingsList'
+import css from '../components/settings/Settings.module.less'
 
-import { $L } from '../hooks/language'
+import { $L, useMapLang } from '../hooks/language'
+import { useNavigate } from '../hooks/navigate'
+import { useSaveOneProfileField } from '../hooks/profile'
 import { initCache } from '../hooks/customFetch'
 import { syncFonts, getFonts } from '../hooks/fonts'
+import { currentProfileState, uiLanguageState } from '../recoilConfig'
 import api from '../api'
+
+/** UI languages the app has strings for (resources/), named in their own language */
+const UI_LANGUAGES = [
+    { value: 'es-ES', label: 'Español' },
+    { value: 'en-US', label: 'English' },
+    { value: 'pt-BR', label: 'Português' },
+    { value: 'fr-FR', label: 'Français' },
+    { value: 'de-DE', label: 'Deutsch' },
+    { value: 'it-IT', label: 'Italiano' },
+    { value: 'ru-RU', label: 'Русский' },
+    { value: 'ar-SA', label: 'العربية' },
+    { value: 'hi-IN', label: 'हिन्दी' },
+]
 
 /**
  * @param {Object} obj
@@ -37,57 +45,45 @@ const useSaveConfigField = ({ setAppConfig, field }) => {
     }, [setAppConfig, field])
 }
 
-
+/**
+ * Settings, tvOS style: grouped rows with their value on the right; rows with options drill into a list
+ * @param {Object} obj
+ * @param {Boolean} [obj.noButtons] shown as a tab of the home screen (not as its own screen)
+ */
 const AppConfigPanel = ({ noButtons, ...rest }) => {
+    const { goTo, jumpTo } = useNavigate()
     const [appConfig, setAppConfig] = useState(api.config.getAppConfig())
     const [isLogged, setIsLogged] = useState(false)
     const [loadingFonts, setLoadingFonts] = useState(false)
     /** @type {[{type: String, message: String}, Function]}  */
     const [message, setMessage] = useState(null)
     const [fontList, setFontList] = useState([])
+    const [askLogout, setAskLogout] = useState(false)
+    const [language, setLanguage] = useRecoilState(uiLanguageState)
+    const [profile, setProfile] = useRecoilState(currentProfileState)
+    /** @type {[{content: Array, audio: Array, subtitle: Array}, Function]} */
+    const [profileLangs, setProfileLangs] = useState(null)
+    const mapLang = useMapLang()
 
-    /** -> UI */  // TODO: maybe hide banner?
     const saveUI = useSaveConfigField({ setAppConfig, field: 'ui' })
-    const onToggleUI = useCallback(({ selected }) => saveUI(selected ? 'full' : 'lite'), [saveUI])
-
-    /** -> preview */
     const savePreview = useSaveConfigField({ setAppConfig, field: 'preview' })
-    const onTogglePreview = useCallback(({ selected }) => savePreview(selected ? 'yes' : 'no'), [savePreview])
-
-    /** -> subtitle */
     const saveSubtitle = useSaveConfigField({ setAppConfig, field: 'subtitle' })
-    const onToggleSubtitle = useCallback(({ selected }) => saveSubtitle(selected ? 'hardsub' : 'softsub'), [saveSubtitle])
-
-    /** -> video */
-    const videos = useMemo(() => ['adaptive', '2160p', '1080p', '720p', '480p', '360p', '240p'], [])
-    const videoLabel = useMemo(() => {
-        const vLable = {
-            'adaptive': $L('Automatic'),
-            '2160p': '4K (2160p)',
-            '1080p': 'Full HD (1080p)',
-            '720p': 'HD (720p)',
-            '480p': 'SD (480p)',
-            '360p': '360p',
-            '240p': '240p'
-        }
-        return videos.map(i => vLable[i])
-    }, [videos])
     const saveVideo = useSaveConfigField({ setAppConfig, field: 'video' })
-    const onSelectVideo = useCallback(({ selected }) => saveVideo(videos[selected]), [videos, saveVideo])
-
-    /** -> cache */
-    const caches = useMemo(() => ['adaptive', '5', '10', '15', '20', '30', '50'], [])
-    const cacheLabel = useMemo(() => {
-        const vLable = {
-            'adaptive': $L('Automatic'),
-        }
-        return caches.map(i => (vLable[i] || `${i} Mb`))
-    }, [caches])
-    const saveCache = useSaveConfigField({ setAppConfig, field: 'cacheMemory' })
-    const onSelectCache = useCallback(({ selected }) => {
-        saveCache(caches[selected])
+    const saveHomeFirst = useSaveConfigField({ setAppConfig, field: 'homeFirst' })
+    const saveCacheField = useSaveConfigField({ setAppConfig, field: 'cacheMemory' })
+    const saveCache = useCallback(value => {
+        saveCacheField(value)
         initCache()
-    }, [caches, saveCache])
+    }, [saveCacheField])
+
+    const saveContentLangField = useSaveOneProfileField({ profile, setProfile, field: 'preferred_communication_language' })
+    const saveAudioLang = useSaveOneProfileField({ profile, setProfile, field: 'preferred_content_audio_language' })
+    const saveSubtitleLang = useSaveOneProfileField({ profile, setProfile, field: 'preferred_content_subtitle_language' })
+    /** titles and synopses come in this language: what's cached was fetched in the old one */
+    const saveContentLang = useCallback(value => {
+        api.utils.clearCache()
+        return saveContentLangField(value)
+    }, [saveContentLangField])
 
     const doSyncFonts = useCallback(async () => {
         setLoadingFonts(true)
@@ -107,6 +103,17 @@ const AppConfigPanel = ({ noButtons, ...rest }) => {
             }).finally(() => setLoadingFonts(false))
     }, [setMessage, setLoadingFonts])
 
+    const doLogout = useCallback(async () => {
+        setAskLogout(false)
+        await api.auth.logout()
+        api.utils.clearCache()
+        jumpTo('/login')
+    }, [jumpTo])
+    const cancelLogout = useCallback(() => setAskLogout(false), [])
+    const openLogout = useCallback(() => setAskLogout(true), [])
+    const openAbout = useCallback(() => goTo('/contact'), [goTo])
+    const openDeveloper = useCallback(() => goTo('/developer'), [goTo])
+
     useEffect(() => {
         getFonts().then(fontsData => setFontList(fontsData.names))
     }, [setFontList])
@@ -115,99 +122,119 @@ const AppConfigPanel = ({ noButtons, ...rest }) => {
         api.auth.getSession().then(token => setIsLogged(!!token))
     }, [])
 
+    useEffect(() => {
+        if (profile && profile.profile_id) {
+            Promise.all([
+                api.misc.getContentLangList(),
+                api.misc.getAudioLangList(),
+                api.misc.getSubtitleLangList(),
+            ]).then(([content, audio, subtitle]) => {
+                const toOptions = list => list.map(mapLang).map(lang => ({ value: lang.key, label: lang.children }))
+                setProfileLangs({ content: toOptions(content), audio: toOptions(audio), subtitle: toOptions(subtitle) })
+            }).catch(() => setProfileLangs(null))
+        }
+    }, [profile, mapLang, language])
+
+    const sections = useMemo(() => {
+        const out = [{
+            title: $L('Playback'),
+            rows: [{
+                key: 'video', icon: 'tv', label: $L('Video quality'), value: appConfig.video, onChange: saveVideo,
+                options: [
+                    { value: 'adaptive', label: $L('Automatic') },
+                    { value: '2160p', label: '4K (2160p)' },
+                    { value: '1080p', label: 'Full HD (1080p)' },
+                    { value: '720p', label: 'HD (720p)' },
+                    { value: '480p', label: 'SD (480p)' },
+                    { value: '360p', label: '360p' },
+                    { value: '240p', label: '240p' },
+                ],
+            }, {
+                key: 'subtitle', icon: 'bubble', label: $L('Subtitles'), value: appConfig.subtitle, onChange: saveSubtitle,
+                options: [
+                    { value: 'hardsub', label: $L('Burned into the video (Hardsub)') },
+                    { value: 'softsub', label: $L('Drawn by the app (Softsub)') },
+                ],
+            }, {
+                key: 'preview', icon: 'photo', label: $L('Previews'), value: appConfig.preview, onChange: savePreview,
+                options: [{ value: 'yes', label: $L('Yes') }, { value: 'no', label: $L('No') }],
+            }],
+        }, {
+            title: $L('Home'),
+            rows: [{
+                key: 'homeFirst', icon: 'rows', label: $L('First row'), value: appConfig.homeFirst || 'suggestions',
+                onChange: saveHomeFirst,
+                options: [
+                    { value: 'suggestions', label: $L('Suggestions') },
+                    { value: 'continue', label: $L('Continue Watching') },
+                ],
+            }, {
+                key: 'ui', icon: 'sparkles', label: $L('Interface'), value: appConfig.ui, onChange: saveUI,
+                options: [{ value: 'full', label: $L('Full') }, { value: 'lite', label: $L('Lite') }],
+            }],
+        }, {
+            title: $L('Language'),
+            rows: [{
+                key: 'language', icon: 'globe', label: $L('App language'), value: language || 'auto', onChange: setLanguage,
+                options: [{ value: 'auto', label: $L('Automatic (TV)') }, ...UI_LANGUAGES],
+            }],
+        }]
+        if (profileLangs) {
+            out[2].rows.push({
+                key: 'contentLang', icon: 'textSize', label: $L('Titles and descriptions'),
+                value: profile.preferred_communication_language, options: profileLangs.content, onChange: saveContentLang,
+            }, {
+                key: 'audioLang', icon: 'speaker', label: $L('Preferred audio'),
+                value: profile.preferred_content_audio_language, options: profileLangs.audio, onChange: saveAudioLang,
+            }, {
+                key: 'subtitleLang', icon: 'bubble', label: $L('Preferred subtitles'),
+                value: profile.preferred_content_subtitle_language, options: profileLangs.subtitle, onChange: saveSubtitleLang,
+            })
+        }
+        out.push({
+            title: $L('System'),
+            rows: [{
+                key: 'cache', icon: 'memory', label: $L('Cache Memory'), value: appConfig.cacheMemory, onChange: saveCache,
+                options: ['adaptive', '5', '10', '15', '20', '30', '50'].map(value => ({
+                    value, label: value === 'adaptive' ? $L('Automatic') : `${value} MB`
+                })),
+            }, ...(isLogged ? [{
+                key: 'fonts', icon: 'refresh', label: $L('Sync Fonts'), loading: loadingFonts, onSelect: doSyncFonts,
+                detail: fontList.length ? `${fontList.length} ${$L('fonts')}` : null,
+            }] : []), {
+                key: 'developer', icon: 'devtools', label: $L('Developer'), onSelect: openDeveloper,
+            }],
+        }, {
+            title: $L('Account'),
+            rows: [{
+                key: 'about', icon: 'info', label: $L('About'), onSelect: openAbout,
+            }, ...(isLogged ? [{
+                key: 'logout', icon: 'logout', label: $L('Logout'), onSelect: openLogout,
+            }] : [])],
+        })
+        return out
+    }, [appConfig, language, profile, profileLangs, isLogged, loadingFonts, fontList, saveVideo, saveSubtitle,
+        savePreview, saveHomeFirst, saveUI, setLanguage, saveContentLang, saveAudioLang, saveSubtitleLang, saveCache,
+        doSyncFonts, openDeveloper, openAbout, openLogout])
+
     return (
-        <Panel {...rest}>
-            <Header type='compact' hideLine>
-                {!noButtons && <ContactMeBtn />}
-                {!noButtons && <LogoutBtn />}
-            </Header>
-            <Row align='center center'>
-                <Heading size='large'>
-                    {$L('Configuration')}
-                </Heading>
-            </Row>
-            <form className={css.profileDetail}>
-                <Row align='baseline space-evenly' className={css.formContent}>
-                    <Column className={css.formColumn}>
-                        <Heading size="large">{$L('Player')}</Heading>
-                        <Field size='large' title={$L('Video')}>
-                            <Dropdown
-                                title={$L('Video')}
-                                selected={videos.indexOf(appConfig.video)}
-                                width='x-large'
-                                onSelect={onSelectVideo}
-                                onKeyDown={dropdownKeydown}
-                                showCloseButton>
-                                {videoLabel}
-                            </Dropdown>
-                        </Field>
-                        <Field title={$L('Subtitles')}>
-                            <ToggleButton
-                                selected={appConfig.subtitle === 'hardsub'}
-                                toggleOnLabel={$L('Hardsub')}
-                                toggleOffLabel={$L('Softsub')}
-                                onToggle={onToggleSubtitle}
-                            />
-                        </Field>
-                        <Field title={$L('Previews')}>
-                            <CheckboxItem
-                                defaultSelected={appConfig.preview === 'yes'}
-                                onToggle={onTogglePreview}>
-                                {appConfig.preview === 'yes' ? $L('Yes') : $L('No')}
-                            </CheckboxItem>
-                        </Field>
-                    </Column>
-                    <Column className={css.formColumn}>
-                        <Heading size="large">{$L('App')}</Heading>
-                        <Field title={$L('Interface')}>
-                            <CheckboxItem
-                                defaultSelected={appConfig.ui === 'full'}
-                                onToggle={onToggleUI}>
-                                {appConfig.ui === 'full' ? $L('Full') : $L('Lite')}
-                            </CheckboxItem>
-                        </Field>
-                        <Field size='large' title={$L('Cache Memory')}>
-                            <Dropdown
-                                title={$L('Cache Memory')}
-                                selected={caches.indexOf(appConfig.cacheMemory)}
-                                width='x-large'
-                                onSelect={onSelectCache}
-                                onKeyDown={dropdownKeydown}
-                                showCloseButton>
-                                {cacheLabel}
-                            </Dropdown>
-                        </Field>
-                    </Column>
-                    {isLogged &&
-                        <Column className={css.formColumn}>
-                            <Heading size="large">{$L('Fonts')}</Heading>
-                            <Field size='large' title={$L('Sync')}>
-                                {loadingFonts && <Spinner />}
-                                {!loadingFonts &&
-                                    <AppIconButton
-                                        mode='full'
-                                        icon='gear'
-                                        tooltipText={$L('Sync Fonts')}
-                                        onClick={doSyncFonts}
-                                    />
-                                }
-                            </Field>
-                            <Field size='large' title={$L('Available Fonts')}>
-                                <div style={{ height: ri.scale(200), width: ri.scale(350) }}>
-                                    <Scroller direction='vertical'
-                                        horizontalScrollbar='hidden'
-                                        verticalScrollbar='visible'>
-                                        {fontList.map(item => <Item key={item}>{item}</Item>)}
-                                    </Scroller>
-                                </div>
-                            </Field>
-                        </Column>
-                    }
-                </Row>
-                <PopupMessage show={!!(message?.type)} type={message?.type}>
-                    {message?.message || 'nothing'}
-                </PopupMessage>
-            </form>
+        <Panel {...rest} className={classNames(rest.className, css.settingsPanel, { [css.embedded]: noButtons })}>
+            <div className={css.side}>
+                <div className={css.bigIcon}><Icon name='gear' /></div>
+                <h1 className={css.title}>{$L('Settings')}</h1>
+                <div className={css.version}>Crunchyroll Stream</div>
+            </div>
+            <div className={css.main}>
+                <SettingsList sections={sections} />
+            </div>
+            <PopupMessage show={!!(message?.type)} type={message?.type}>
+                {message?.message || 'nothing'}
+            </PopupMessage>
+            <Alert open={askLogout}
+                title={$L('Logout')}
+                message={$L('Are you sure you want to logout?')}
+                onAccept={doLogout}
+                onCancel={cancelLogout} />
         </Panel>
     )
 }

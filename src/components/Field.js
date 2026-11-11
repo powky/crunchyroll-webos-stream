@@ -1,6 +1,4 @@
 
-import { Row, Column } from '@enact/ui/Layout'
-import Heading from '@enact/moonstone/Heading'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
 
@@ -28,14 +26,10 @@ const Field = ({ type, title, children, size = 'normal', ...rest }) => {
     delete rest.className
 
     return (
-        <Row className={className} {...rest}>
-            <Column>
-                {title &&
-                    <Heading size='small' spacing='small'>{title}:</Heading>
-                }
-                <div>{children}</div>
-            </Column>
-        </Row>
+        <div className={className} {...rest}>
+            {title && <div className={css.title}>{title}</div>}
+            <div className={css.value}>{children}</div>
+        </div>
     )
 }
 

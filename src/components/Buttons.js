@@ -1,11 +1,10 @@
 
 import { useCallback, useState } from 'react'
-import Button from '@enact/moonstone/Button'
-import Icon from '@enact/moonstone/Icon'
 import IconButton from '@enact/moonstone/IconButton'
 import { useSetRecoilState } from 'recoil'
 
 import Alert from './Alert'
+import PillButton from './ui/PillButton'
 import { $L } from '../hooks/language'
 import { useNavigate } from '../hooks/navigate'
 import { contactBtnState } from '../recoilConfig'
@@ -20,27 +19,26 @@ import api from '../api'
  *
  * @param {AppButtonPropsBase & import('@enact/moonstone/IconButton').IconButtonProps} obj
  */
-export const AppIconButton = ({ mode = 'short', onClick, tooltipText, icon, ...rest }) => {
+/** moonstone icon names used here -> the app's own glyphs (components/ui/Icons) */
+const ICONS = { gear: 'gear', info: 'info', arrowshrinkright: 'logout' }
 
-    return (<>
-        {mode === 'full' &&
-            <Button onClick={onClick}>
-                <Icon style={{ marginRight: '0.5rem' }}>
-                    {icon}
-                </Icon>
-                {tooltipText}
-            </Button>
-        }
-        {mode === 'short' &&
-            <IconButton
-                size="small"
-                onClick={onClick}
-                tooltipText={tooltipText}
-                {...rest}>
+/**
+ * @param {Object} obj
+ * @param {'short'|'full'} [obj.mode] round icon, or icon and label
+ * @param {Boolean} [obj.player] moonstone's button, to match the rest of the video player's controls
+ */
+export const AppIconButton = ({ mode = 'short', onClick, tooltipText, icon, player, ...rest }) => {
+    if (player) {
+        return (
+            <IconButton backgroundOpacity='lightTranslucent' onClick={onClick} tooltipText={tooltipText} {...rest}>
                 {icon}
             </IconButton>
-        }
-    </>)
+        )
+    }
+    if (mode === 'full') {
+        return <PillButton icon={ICONS[icon] || icon} onClick={onClick} {...rest}>{tooltipText}</PillButton>
+    }
+    return <PillButton round icon={ICONS[icon] || icon} aria-label={tooltipText} onClick={onClick} {...rest} />
 }
 
 
@@ -60,7 +58,7 @@ export const DevBtn = () => {
     )
 }
 
-export const AppConfigBtn = ({ mode = 'short' }) => {
+export const AppConfigBtn = ({ mode = 'short', player }) => {
     const { goTo } = useNavigate()
     const onClick = useCallback(() => {
         goTo('/appConfig')
@@ -69,6 +67,7 @@ export const AppConfigBtn = ({ mode = 'short' }) => {
     return (
         <AppIconButton
             mode={mode}
+            player={player}
             onClick={onClick}
             tooltipText={$L('Config')}
             icon='gear'
@@ -76,7 +75,7 @@ export const AppConfigBtn = ({ mode = 'short' }) => {
     )
 }
 
-export const ContactMeBtn = () => {
+export const ContactMeBtn = ({ player }) => {
     const { goTo } = useNavigate()
     /** @type {Function} */
     const setContactBtn = useSetRecoilState(contactBtnState)
@@ -89,6 +88,7 @@ export const ContactMeBtn = () => {
     return (
         <AppIconButton
             mode='short'
+            player={player}
             onClick={contactMe}
             tooltipText={$L('About Me?')}
             icon='info'

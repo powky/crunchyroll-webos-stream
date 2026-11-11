@@ -1,0 +1,62 @@
+@import (reference) '../../theme/tokens.less';
+
+.feed {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1920px;
+	height: 1080px;
+	overflow: hidden;
+}
+
+// own layer: its text changes when the focus settles and only this box repaints
+.hero {
+	position: absolute;
+	left: @cr-pad;
+	top: 170px;
+	width: 940px;
+	height: 480px;
+	z-index: 1;
+	.cr-layer();
+}
+
+.resume {
+	margin-top: 22px;
+	display: flex;
+	align-items: center;
+	color: @cr-muted;
+	font-size: 21px;
+	font-weight: 600;
+}
+
+.resumeBar {
+	width: 220px;
+	height: 6px;
+	margin-right: 16px;
+	border-radius: 3px;
+	background: rgba(255, 255, 255, 0.24);
+	overflow: hidden;
+
+	i {
+		display: block;
+		height: 100%;
+		background: @cr-text;
+	}
+}
+
+// exactly one row: the next one starts below the screen, so the artwork above gets the room
+.shelves {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 680px;
+	height: 400px;
+	overflow: hidden;
+	z-index: 2;
+}
+
+// a feed with its own header under the tab bar (music): the hero starts lower and shows less synopsis
+.withHeader .hero {
+	top: 250px;
+	height: 400px;
+}

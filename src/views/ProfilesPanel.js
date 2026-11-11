@@ -1,17 +1,16 @@
 
 import { useCallback, useEffect, useState } from 'react'
-import { Row, Column } from '@enact/ui/Layout'
-import Heading from '@enact/ui/Heading'
 import Spotlight from '@enact/spotlight'
-import { Header, Panel } from '@enact/moonstone/Panels'
+import { Panel } from '@enact/moonstone/Panels'
 import Spinner from '@enact/moonstone/Spinner'
-import Button from '@enact/moonstone/Button'
-import Icon from '@enact/moonstone/Icon'
+import classNames from 'classnames'
 import { useSetRecoilState } from 'recoil'
 
 import { $L } from '../hooks/language'
 import { currentProfileState, homeViewReadyState } from '../recoilConfig'
 import Profile from '../components/profile/Profile'
+import PillButton from '../components/ui/PillButton'
+import css from '../components/profile/Profile.module.less'
 import { ContactMeBtn, DevBtn, LogoutBtn, AppConfigBtn } from '../components/Buttons'
 import api from '../api'
 import { DEV_FAST_SELECT } from '../const'
@@ -100,45 +99,38 @@ const ProfilesPanel = ({ ...rest }) => {
     }, [])
 
     return (
-        <Panel {...rest}>
-            <Header type='compact' hideLine>
+        <Panel {...rest} className={classNames(rest.className, css.profilesPanel)}>
+            <div className={css.corner}>
                 <AppConfigBtn />
                 <ContactMeBtn />
                 <LogoutBtn />
-            </Header>
-            <Column align='center'>
-                {!loading && multiProfile && multiProfile.profiles.length ?
-                    <>
-                        <Row align='center center'>
-                            <Heading size='title'>
-                                {$L('Who will go on an adventure?')}
-                            </Heading>
-                        </Row>
-                        <Row align='center center' style={{ marginTop: '1rem' }}>
-                            {multiProfile.profiles.map((profile, i) =>
-                                <Profile profile={profile} key={i}
-                                    onSelectProfile={onSelectProfile}
-                                    onEditProfile={onEditProfile}
-                                    compRef={setFocus} />
-                            )}
-                        </Row>
-                        <Row align='center center' style={{ marginTop: '3rem' }}>
-                            {multiProfile.profiles.length < multiProfile.tier_max_profiles &&
-                                <Button onClick={onCreateProfile}>
-                                    <Icon style={{ marginRight: '0.5rem' }}>
-                                        plus
-                                    </Icon>
-                                    {$L('Add')}
-                                </Button>
-                            }
-                            <AppConfigBtn mode='full' />
-                            <DevBtn />
-                        </Row>
-                    </>
-                    :
+            </div>
+            {!loading && multiProfile && multiProfile.profiles.length ?
+                <div className={css.center}>
+                    <h1 className={css.title}>{$L('Who will go on an adventure?')}</h1>
+                    <div className={css.profiles}>
+                        {multiProfile.profiles.map((profile, i) =>
+                            <Profile profile={profile} key={i}
+                                onSelectProfile={onSelectProfile}
+                                onEditProfile={onEditProfile}
+                                compRef={setFocus} />
+                        )}
+                    </div>
+                    <div className={css.footer}>
+                        {multiProfile.profiles.length < multiProfile.tier_max_profiles &&
+                            <PillButton icon='plus' onClick={onCreateProfile}>
+                                {$L('Add')}
+                            </PillButton>
+                        }
+                        <AppConfigBtn mode='full' />
+                        <DevBtn />
+                    </div>
+                </div>
+                :
+                <div className={css.loading}>
                     <Spinner />
-                }
-            </Column>
+                </div>
+            }
         </Panel>
     )
 }

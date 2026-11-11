@@ -25,3 +25,6 @@ __pycache__/
 .idea
 /docker/user_data_38/
 /docker/user_data_68/
+
+# generated from the local SF Symbols app (Apple license): see tools/sf-symbols
+src/components/ui/sfSymbols.generated.json

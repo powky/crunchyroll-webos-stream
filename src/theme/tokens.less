@@ -1,0 +1,50 @@
+// Design tokens of the Apple-TV-style skin. Laid out at 1920x1080 CSS px: webOS renders it at devicePixelRatio 2,
+// so these sizes are what the TV shows. Chrome 79: no flex `gap`, no `inset`, no optional chaining in shipped code.
+
+@cr-bg: #0b0b0e;
+@cr-text: #f5f5f7;
+@cr-muted: rgba(235, 235, 245, 0.62);
+@cr-faint: rgba(235, 235, 245, 0.42);
+@cr-glass: rgba(255, 255, 255, 0.14);
+@cr-glass-hi: rgba(255, 255, 255, 0.22);
+@cr-surface: #1c1c21;
+@cr-accent: #ff5e00;  // Crunchyroll's orange
+@cr-star: #ffd166;
+@cr-focus-bg: #f5f5f7;
+@cr-focus-text: #0b0b0e;
+
+@cr-font: 'CR Inter', 'Moonstone', sans-serif;
+@cr-pad: 96px;
+@cr-top: 136px;  // where page content starts below the tab bar
+@cr-radius: 14px;
+@cr-lift: 24px;  // room around a card for its focus lift and ring (Card.js CARD_LIFT)
+@cr-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+// everything that moves on focus keeps a permanent layer: creating or dropping one on a key press
+// repaints the whole screen underneath on this TV's GPU
+.cr-layer() {
+	will-change: transform;
+	transform: translateZ(0);
+}
+
+.cr-clamp(@lines) {
+	display: -webkit-box;
+	-webkit-line-clamp: @lines;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+// a horizontal moonstone VirtualList that bleeds off the screen edge instead of cutting cards at its own left edge
+// (it scrolls with a transform inside two overflow:hidden boxes; this goes on its parent)
+.cr-bleed() {
+	> * > * > *,
+	> * > * > * > * {
+		overflow: visible !important;
+	}
+}
+
+.cr-ellipsis() {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

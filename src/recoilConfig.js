@@ -74,3 +74,10 @@ export const viewBackupState = atom({
     key: 'viewBackupState',
     default: {}
 })
+
+/** UI language: 'auto' follows the TV, otherwise a locale such as 'es-ES' (index.js hands it to Enact's i18n) */
+export const uiLanguageState = atom({
+    key: 'uiLanguageState',
+    default: 'auto',
+    effects: [localStorageEffect('uiLanguage')]
+})

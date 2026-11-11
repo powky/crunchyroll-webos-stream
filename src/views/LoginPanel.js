@@ -1,20 +1,21 @@
 
 import { useCallback, useEffect, useState, useRef } from 'react'
-import { Row, Column } from '@enact/ui/Layout'
-import { Header, Panel } from '@enact/moonstone/Panels'
-import Heading from '@enact/moonstone/Heading'
-import Button from '@enact/moonstone/Button'
+import { Panel } from '@enact/moonstone/Panels'
+import classNames from 'classnames'
 
 import { useSetRecoilState, useRecoilState } from 'recoil'
 
 import { LoginWithEmail, LoginWithCode, LoginWithQR } from '../components/login/Login'
 import { ContactMeBtn, AppConfigBtn } from '../components/Buttons'
 import PopupMessage from '../components/Popup'
+import PillButton from '../components/ui/PillButton'
+import logo from '../../assets/img/crunchyroll-logo.svg'
 import { autoLoginState, isPremiumState } from '../recoilConfig'
 import api from '../api'
 import { $L } from '../hooks/language'
 import { useNavigate } from '../hooks/navigate'
 import logger from '../logger'
+import css from '../components/login/Login.module.less'
 
 
 const ActivityViews = ({ index, children }) => children[index]
@@ -112,32 +113,35 @@ const LoginPanel = ({ ...rest }) => {
     }, [])
 
     return (
-        <Panel {...rest}>
-            <Header type='compact' hideLine>
+        <Panel {...rest} className={classNames(rest.className, css.loginPanel)}>
+            <div className={css.corner}>
                 <AppConfigBtn />
                 <ContactMeBtn />
-            </Header>
-            <Column>
-                <Row align='center center'>
-                    <Heading size="large">{$L('Login')}</Heading>
-                </Row>
-                <Row align='center center' style={{ marginBottom: '0.6rem' }}>
-                    <Button data-index='0' onClick={setView}>{$L('Email')}</Button>
-                    <Button data-index='1' onClick={setView}>{$L('Code')}</Button>
-                    <Button data-index='2' onClick={setView}>{$L('QR code')}</Button>
-                </Row>
-                <Row align='center center'>
-                    <ActivityViews index={currentIndex}>
-                        <LoginWithEmail
-                            autoLogin={autoLogin}
-                            makeLogin={makeLogin}
-                            setErrorMessage={setErrorMessage}
-                        />
-                        <LoginWithCode deviceCode={deviceCode} />
-                        <LoginWithQR deviceCode={deviceCode} />
-                    </ActivityViews>
-                </Row>
-            </Column>
+            </div>
+            <div className={css.center}>
+                <img className={css.logo} src={logo} alt='Crunchyroll' />
+                <h1 className={css.title}>{$L('Login')}</h1>
+                <div className={css.segmented}>
+                    <PillButton small icon='mail' data-index='0' selected={currentIndex === 0} onClick={setView}>
+                        {$L('Email')}
+                    </PillButton>
+                    <PillButton small icon='key' data-index='1' selected={currentIndex === 1} onClick={setView}>
+                        {$L('Code')}
+                    </PillButton>
+                    <PillButton small icon='qr' data-index='2' selected={currentIndex === 2} onClick={setView}>
+                        {$L('QR code')}
+                    </PillButton>
+                </div>
+                <ActivityViews index={currentIndex}>
+                    <LoginWithEmail
+                        autoLogin={autoLogin}
+                        makeLogin={makeLogin}
+                        setErrorMessage={setErrorMessage}
+                    />
+                    <LoginWithCode deviceCode={deviceCode} />
+                    <LoginWithQR deviceCode={deviceCode} />
+                </ActivityViews>
+            </div>
             <PopupMessage show={!!message} type='error'>
                 {message}
             </PopupMessage>

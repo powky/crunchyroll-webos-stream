@@ -1,19 +1,46 @@
+@import (reference) '../theme/tokens.less';
+
+// tvOS-style alert: dark card in the middle, the page dimmed behind it
 .Alert {
-    background-color: rgba(0, 0, 0, 0.8);
+	background-color: rgba(0, 0, 0, 0.72);
 
-    .content {
-        padding: 1rem;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: rgba(237, 237, 237, 0.95);
-        border-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        height: auto;
+	.content {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		min-width: 640px;
+		max-width: 900px;
+		padding: 48px 56px 40px;
+		border-radius: 28px;
+		background: #1f1f24;
+		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+		transform: translate(-50%, -50%);
+		font-family: @cr-font;
+		text-align: center;
+	}
 
-        >div {
-            margin-top: 1rem;
-        }
-    }
+	.title {
+		margin: 0;
+		color: @cr-text;
+		font-size: 36px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+	}
+
+	.message {
+		margin: 16px 0 0;
+		color: @cr-muted;
+		font-size: 24px;
+		line-height: 1.45;
+	}
+
+	.buttons {
+		display: flex;
+		justify-content: center;
+		margin-top: 36px;
+
+		> *:last-child {
+			margin-right: 0;
+		}
+	}
 }

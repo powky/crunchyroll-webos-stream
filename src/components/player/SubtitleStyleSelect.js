@@ -152,7 +152,7 @@ const SubtitleStyleSelect = ({ triggerActivity, ...rest }) => {
             direction='up'
             showCloseButton
             {...rest}>
-            aA
+            {'\uE000'}
         </IconButtonWithPopup>
     )
 }

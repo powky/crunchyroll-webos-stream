@@ -1,75 +1,169 @@
+@import (reference) '../../theme/tokens.less';
+
 .ContentDetail {
-    height: 100%;
-    overflow: hidden;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1920px;
+	height: 1080px;
+	overflow: hidden;
+	font-family: @cr-font;
+}
 
-    .col {
-        height: 100%;
-        width: 100%;
-        position: relative;
+.top {
+	position: absolute;
+	left: @cr-pad;
+	top: 96px;
+	width: 1400px;
+	z-index: 1;
 
-        .poster {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            margin: 0;
-        }
+	> :first-child {
+		width: 980px;
+	}
+}
 
-        .modal {
-            height: 100% !important;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.85);
+.actionsBlock {
+	margin-top: 30px;
+}
 
-            >div {
-                height: calc(100% - 1rem);
-                margin: 0.5rem;
-                overflow: hidden;
+.actionsLoading {
+	height: 64px;
+	display: flex;
+	align-items: center;
+}
 
-                >div {
-                    height: 100%;
-                    overflow: hidden;
-                }
-            }
+// the first button sits on the text margin; the focus lift needs no extra room here
+.actions {
+	display: flex;
+	align-items: center;
+	height: 64px;
+}
 
-            .firstData {
-                padding: 0.7rem 0;
-            }
+.stars {
+	display: flex;
+	align-items: center;
+	margin-left: 8px;
 
-            .scrollerContainer {
-                height: 100%;
-                margin-left: 0.375rem;
+	.starOn {
+		color: @cr-star;
+	}
+}
 
-                p {
-                    margin: 0;
-                }
+// the focused round button's name (or how much is left), on the buttons' line
+.hint {
+	flex: 1 1 auto;
+	min-width: 0;
+	margin-left: 20px;
+	.cr-ellipsis();
+	color: @cr-muted;
+	font-size: 20px;
+	font-weight: 600;
+}
 
-                span {
-                    margin-left: 1rem;
-                }
-            }
+.resume {
+	display: flex;
+	align-items: center;
+}
 
-            .episode {
-                height: 100%;
+.resumeBar {
+	display: block;
+	width: 140px;
+	height: 5px;
+	margin-right: 12px;
+	border-radius: 3px;
+	background: rgba(255, 255, 255, 0.24);
+	overflow: hidden;
 
-                >div {
-                    height: 100%;
+	i {
+		display: block;
+		height: 100%;
+		background: @cr-text;
+	}
+}
 
-                    >div {
-                        height: 100%;
+.bottom {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 640px;
+	bottom: 0;
+	z-index: 2;
+}
 
-                        p {
-                            margin: 0.3rem 0.3rem 0 0.3rem;
-                        }
-                    }
-                }
-            }
-        }
-    }
+.seasonShelf {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
 
-    .name {
-        padding-right: 1rem;
-        padding-left: 1rem;
-    }
+.shelfHead {
+	flex: none;
+	height: 48px;
+	margin: 0 @cr-pad;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.shelfTitle {
+	margin: 0;
+	color: rgba(245, 245, 247, 0.92);
+	font-size: 28px;
+	font-weight: 700;
+	letter-spacing: -0.015em;
+}
+
+.tabs {
+	flex: 0 1 auto;
+	min-width: 0;
+	height: 48px;
+	overflow: hidden;
+}
+
+.tabsInner {
+	display: flex;
+	align-items: center;
+	height: 48px;
+	white-space: nowrap;
+	.cr-layer();
+	transition: transform 200ms @cr-ease;
+
+	> * {
+		max-width: 420px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+}
+
+.tools {
+	flex: none;
+	display: flex;
+	align-items: center;
+	margin-left: 24px;
+}
+
+.shelfList {
+	flex: 1 1 auto;
+	position: relative;
+	margin: 6px 0 0 (@cr-pad - @cr-lift);
+	height: 380px;
+
+	// LoadingList's box, then the list inside it
+	> * {
+		overflow: visible !important;
+
+		.cr-bleed();
+	}
+}
+
+.audioPage {
+	position: absolute;
+	left: @cr-pad;
+	top: 96px;
+	width: 1100px;
+	z-index: 1;
+}
+
+.langSelector {
+	margin-top: 36px;
 }

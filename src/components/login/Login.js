@@ -156,6 +156,7 @@ export const LoginWithEmail = ({ autoLogin, makeLogin, setErrorMessage, ...rest 
                 <Heading size='small'>{$L('Use your email and password')}</Heading>
                 <Row>
                     <Input
+                        className={css.input}
                         type='email'
                         placeholder={$L('Email')}
                         value={email}
@@ -164,6 +165,7 @@ export const LoginWithEmail = ({ autoLogin, makeLogin, setErrorMessage, ...rest 
                 </Row>
                 <Row>
                     <Input
+                        className={css.input}
                         type='password'
                         placeholder={$L('Password')}
                         value={password}

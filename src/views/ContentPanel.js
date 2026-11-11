@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react'
 import { Panel } from '@enact/moonstone/Panels'
+import classNames from 'classnames'
 
 import { useRecoilValue } from 'recoil'
 
@@ -11,6 +12,7 @@ import ContentDetail from '../components/content/ContentDetail'
 import Artist from '../components/artist/Artist'
 import Alert from '../components/Alert'
 import logger from '../logger'
+import css from './HomePanel.module.less'
 
 
 const ContentPanel = ({ ...rest }) => {
@@ -30,7 +32,7 @@ const ContentPanel = ({ ...rest }) => {
     }, [content, setShowError])
 
     return (
-        <Panel {...rest}>
+        <Panel {...rest} className={classNames(rest.className, css.homePanel)}>
             {['series', 'movie_listing'].includes(content.type) &&
                 <ContentDetail
                     profile={profile}

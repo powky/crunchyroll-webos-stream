@@ -2,7 +2,6 @@
 import 'dashjs-webos5'
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import VideoPlayer, { MediaControls } from '@enact/moonstone/VideoPlayer'
-import Button from '@enact/moonstone/Button'
 import IconButton from '@enact/moonstone/IconButton'
 import Spotlight from '@enact/spotlight'
 import { useRecoilValue, useRecoilState } from 'recoil'
@@ -15,6 +14,8 @@ import Rating from './Rating'
 import ContentInfo from './ContentInfo'
 import { ContactMeBtn, AppConfigBtn } from '../Buttons'
 import PopupMessage from '../Popup'
+import PillButton from '../ui/PillButton'
+import css from './Player.module.less'
 import { currentProfileState, playContentState } from '../../recoilConfig'
 import { useGetLanguage } from '../../hooks/language'
 import * as fetchUtils from '../../hooks/customFetch'
@@ -867,16 +868,33 @@ const Player = ({ ...rest }) => {
         setCurrentSkipEvent(resetCurrentSkipEvent)
     }, [currentSkipEvent, resetCurrentSkipEvent])
 
-    /** @type {Function} set skip button bottom */
+    /** @type {Function} set skip button bottom, and lift soft subtitles above the controls while they show */
     const onMediaControlShow = useCallback(({ available }) => {
         const skipDoc = document.querySelector('#skip-button')
+        const subtitles = document.querySelectorAll('.LibAss, .SUBREMOTE')
         if (available) {
             const ctrlButton = document.querySelector('#media-controls').parentElement
             const posicionElementoB = ctrlButton.getBoundingClientRect().top
             skipDoc.style.bottom = `${window.innerHeight - posicionElementoB + 15}px`
+            // the whole control block (title, bar, buttons): the first ancestor taller than the button row
+            let block = ctrlButton
+            while (block.parentElement && block.getBoundingClientRect().height < 200) {
+                block = block.parentElement
+            }
+            const controlsTop = block.getBoundingClientRect().top
+            // subtitles sit a little above the bottom edge: this leaves them just clear of the title
+            const lift = Math.max(0, window.innerHeight - controlsTop + 10)
+            subtitles.forEach(node => { node.style.transform = `translate3d(0, -${lift}px, 0)` })
+            // the stream's own captions are drawn by the browser inside the <video>: lifted by CSS (global.less)
+            document.querySelectorAll('video').forEach(video => {
+                video.style.setProperty('--cr-caption-lift', `-${lift}px`)
+                video.classList.add('cr-captions-lifted')
+            })
         } else {
             skipDoc.style.bottom = '2.5rem'
-            if (skipDoc.style.display === 'inline-block') {
+            subtitles.forEach(node => { node.style.transform = '' })
+            document.querySelectorAll('video').forEach(video => video.classList.remove('cr-captions-lifted'))
+            if (skipDoc.style.display !== 'none') {
                 setTimeout(() => Spotlight.focus('#skip-button'), 100)
             }
         }
@@ -945,8 +963,8 @@ const Player = ({ ...rest }) => {
                         selectAudio={selectAudio}
                         triggerActivity={triggerActivity} />
                 }
-                <AppConfigBtn />
-                <ContactMeBtn />
+                <AppConfigBtn player />
+                <ContactMeBtn player />
             </>
         );
     }, [stream, subtitle, selectSubtitle, audio, selectAudio, triggerActivity])
@@ -1276,12 +1294,12 @@ const Player = ({ ...rest }) => {
                     <rightComponents>{rightComponents}</rightComponents>
                 </MediaControls>
             </VideoPlayer>
-            <Button id="skip-button"
+            <PillButton id="skip-button"
+                icon='skip'
+                className={css.skip}
                 style={{
-                    position: 'absolute',
-                    right: '2.5rem',
                     bottom: '2.5rem',
-                    display: currentSkipEvent ? 'inline-block' : 'none',
+                    display: currentSkipEvent ? 'inline-flex' : 'none',
                 }}
                 onClick={onSkipEvent}
                 spotlightDisabled={!currentSkipEvent}
@@ -1290,7 +1308,7 @@ const Player = ({ ...rest }) => {
                 onSpotlightRight={onSkipBtnNavigate}
                 onSpotlightUp={onSkipBtnNavigate}>
                 {currentSkipEvent && currentSkipEvent.title}
-            </Button>
+            </PillButton>
             <PopupMessage show={!!message} type='error' onClose={onClosePopup}>
                 {message}
             </PopupMessage>

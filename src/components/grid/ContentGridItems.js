@@ -2,16 +2,15 @@
 import { useCallback, useEffect, useRef, useMemo } from 'react'
 import Spinner from '@enact/moonstone/Spinner'
 import { VirtualGridList } from '@enact/moonstone/VirtualList'
-import GridListImageItem from '@enact/moonstone/GridListImageItem'
 import ri from '@enact/ui/resolution'
 import DateFmt from 'ilib/lib/DateFmt'
 
 import PropTypes from 'prop-types'
 
 import LoadingList from '../LoadingList'
-import useGetImagePerResolution from '../../hooks/getImagePerResolution'
+import Card, { cardHeight, CARD_LIFT } from '../ui/Card'
+import { pickImage } from '../ui/images'
 import { useViewBackup } from '../../hooks/viewBackup'
-import css from './ContentGrid.module.less'
 
 
 /**
@@ -32,14 +31,14 @@ const ContentGridItems = ({ type, contentList, onSelect, load, autoScroll = true
     const scrollToRef = useRef(null)
     /** @type {{current: Number}} */
     const rowIndexRef = useRef(viewBackup?.rowIndex || 0)
+    /** artwork width; cells add the card's 16px focus margin on each side and two lines of text */
+    const cardWidth = mode === 'tall' ? 232 : 352
     /** @type {[Number, Number]} */
     const [itemHeight, itemWidth] = useMemo(() => {
-        return mode === 'tall' ? [ri.scale(390), ri.scale(240)] : [ri.scale(270), ri.scale(320)]
-    }, [mode])
+        return [ri.scale(CARD_LIFT + cardHeight(cardWidth, mode) + 80), ri.scale(cardWidth + 2 * CARD_LIFT)]
+    }, [mode, cardWidth])
     /** @type {import('ilib/lib/DateFmt')} */
     const dateFmt = useMemo(() => new DateFmt({ type: 'datetime', length: 'short', clock: '12' }), [])
-    /** @type {Function} */
-    const getImagePerResolution = useGetImagePerResolution()
 
     /** @type {Function} */
     const getScrollTo = useCallback((scrollTo) => { scrollToRef.current = scrollTo }, [])
@@ -59,23 +58,18 @@ const ContentGridItems = ({ type, contentList, onSelect, load, autoScroll = true
         let out
         const contentItem = contentList[index]
         if (contentItem) {
-            const image = getImagePerResolution({
-                height: itemHeight,
-                content: contentItem,
-                mode
-            })
             /** @type {String} */
             let dateStr = contentItem.last_public && dateFmt.format(new Date(contentItem.last_public)) || ''
             dateStr = dateStr.endsWith('.') ? dateStr.slice(0, -1) : dateStr
             out = (
-                <GridListImageItem
+                <Card
                     {...rest2}
-                    className={css.GridListImageItemBadge}
                     data-index={index}
-                    data-date={dateStr}
-                    source={image.source}
-                    caption={(contentItem.title || '').replace(/\n/g, "")}
-                    subCaption={(contentItem.description || '').replace(/\n/g, "")}
+                    image={pickImage(contentItem, { mode, minWidth: mode === 'tall' ? 460 : 700 })}
+                    width={cardWidth}
+                    mode={mode}
+                    title={(contentItem.title || '').replace(/\n/g, '')}
+                    subtitle={dateStr || (contentItem.description || '').replace(/\n/g, ' ')}
                     onClick={onSelectItem}
                     onFocus={onFocus}
                 />
@@ -91,7 +85,7 @@ const ContentGridItems = ({ type, contentList, onSelect, load, autoScroll = true
             )
         }
         return out
-    }, [contentList, itemHeight, getImagePerResolution, onSelectItem, onFocus, load, mode, dateFmt])
+    }, [contentList, cardWidth, onSelectItem, onFocus, load, mode, dateFmt])
 
     useEffect(() => {
         let interval = null
@@ -122,7 +116,7 @@ const ContentGridItems = ({ type, contentList, onSelect, load, autoScroll = true
                     dataSize={contentList.length}
                     itemRenderer={renderItem}
                     itemSize={{ minHeight: itemHeight, minWidth: itemWidth }}
-                    spacing={ri.scale(25)}
+                    spacing={0}
                     cbScrollTo={getScrollTo}
                 />
             }

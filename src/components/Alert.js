@@ -2,14 +2,10 @@
 import { forwardRef, useRef, useEffect } from 'react'
 import Spotlight from '@enact/spotlight'
 import { SpotlightContainerDecorator } from '@enact/spotlight/SpotlightContainerDecorator'
-import { Row } from '@enact/ui/Layout'
-import { Column } from '@enact/ui/Layout'
 import FloatingLayer from '@enact/ui/FloatingLayer'
-import Skinnable from '@enact/moonstone/Skinnable'
-import Heading from '@enact/moonstone/Heading'
-import BodyText from '@enact/moonstone/BodyText'
-import Button from '@enact/moonstone/Button'
 import PropTypes from 'prop-types'
+
+import PillButton from './ui/PillButton'
 
 import { $L } from '../hooks/language'
 import css from './Alert.module.less'
@@ -42,22 +38,20 @@ export const AlertBase = ({ open, title, message, onCancel, onAccept, forwardedR
 
     return (
         <FloatingLayer className={css.Alert} open={open} noAutoDismiss>
-            <Column style={{ height: 'auto' }} {...rest} className={css.content} ref={forwardedRef}>
-                {title && <Heading size='medium'>{title}</Heading>}
-                {message && <BodyText centered>{message}</BodyText>}
-                <Row align='baseline flex-end' ref={compRef}>
+            <div {...rest} className={css.content} ref={forwardedRef}>
+                {title && <h2 className={css.title}>{title}</h2>}
+                {message && <p className={css.message}>{message}</p>}
+                <div className={css.buttons} ref={compRef}>
                     {onCancel &&
-                        <Button className='spottable-default'
-                            onClick={onCancel}>
+                        <PillButton className='spottable-default' onClick={onCancel}>
                             {$L('Cancel')}
-                        </Button>
+                        </PillButton>
                     }
-                    <Button className='spottable-default'
-                        onClick={onAccept}>
+                    <PillButton className='spottable-default' onClick={onAccept}>
                         {$L('Accept')}
-                    </Button>
-                </Row>
-            </Column>
+                    </PillButton>
+                </div>
+            </div>
         </FloatingLayer>
     )
 }
@@ -68,9 +62,7 @@ export const AlertSpot = SpotlightContainerDecorator({
     leaveFor: { left: '', right: '', up: '', down: '' },
 }, AlertBase)
 
-export const AlertSkin = Skinnable({ defaultSkin: 'light' }, AlertSpot)
-
-const Alert = forwardRef((props, ref) => (<AlertSkin {...props} forwardedRef={ref} />))
+const Alert = forwardRef((props, ref) => (<AlertSpot {...props} forwardedRef={ref} />))
 
 Alert.propTypes = {
     open: PropTypes.bool,

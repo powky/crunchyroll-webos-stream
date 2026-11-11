@@ -1,50 +1,54 @@
+@import (reference) '../theme/tokens.less';
+
 .Field {
-    overflow: hidden;
+	margin-top: 22px;
+	font-family: @cr-font;
 
-    &.textField {
-        >div {
-            width: 100%;
+	.title {
+		margin: 0 0 10px 6px;
+		color: @cr-faint;
+		font-size: 18px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
 
-            >div:last-of-type {
-                color: #ccc;
-                background-color: #383838;
-                padding: 0.2rem 0.5rem;
-                border-radius: 0.2rem;
-                margin-left: 1rem;
-                margin: 0 0.375rem;
-            }
-        }
-    }
+	&.textField .value {
+		display: inline-block;
+		max-width: 100%;
+		padding: 12px 20px;
+		border-radius: 12px;
+		background: @cr-glass;
+		color: @cr-text;
+		font-size: 24px;
+		font-weight: 600;
+		overflow-wrap: anywhere;
+	}
 
-    &.imageField {
-        >div>div {
-            align-items: flex-end;
-            display: flex;
+	&.imageField .value {
+		display: flex;
+		align-items: flex-end;
 
-            div[role="img"] {
-                height: 7.5rem;
-                width: 7.5rem;
-            }
+		div[role="img"] {
+			height: 180px;
+			width: 180px;
+			border-radius: 50%;
+		}
+	}
 
+	&.inputField input {
+		max-width: 360px;
+	}
 
-        }
-    }
+	&.normal {
+		max-width: 408px;
+	}
 
-    &.inputField {
-        input {
-            max-width: 15rem;
-        }
-    }
+	&.small {
+		max-width: 240px;
+	}
 
-    &.normal {
-        max-width: 17rem;
-    }
-
-    &.small {
-        max-width: 10rem;
-    }
-
-    &.large {
-        max-width: 22rem;
-    }
+	&.large {
+		max-width: 640px;
+	}
 }

@@ -112,6 +112,8 @@ export const setDeviceInformation = async () => {
  * @property {Number} subtitleFontScale Font-size multiplier as percentage; 100 = 1.0×.
  * @property {Number} subtitleOutlineScale Outline multiplier as percentage; 100 = 1.0×.
  * @property {Number} subtitleTimeOffset Seconds added to every incoming media time; positive advances subs, negative delays them.
+ * @property {'suggestions'|'continue'} homeFirst which home row goes first; the other one goes second
+ * @property {String} language UI language: 'auto' (the TV's) or a locale like 'es-ES'
  *
  * @param {AppConfig} [newConfig]
  * @return {Promise}
@@ -127,6 +129,8 @@ export const setAppConfig = async (newConfig = {}) => {
         subtitleFontScale: 100,
         subtitleOutlineScale: 100,
         subtitleTimeOffset: 0,
+        homeFirst: 'suggestions',
+        language: 'auto',
     }
     await localStore.setNewData({ appConfig: { ...defaultConfig, ...(storage.appConfig || {}), ...newConfig } })
 }

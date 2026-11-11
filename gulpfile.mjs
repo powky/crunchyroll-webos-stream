@@ -122,6 +122,12 @@ var _increment = function increment(state) {  // crunchypatch
     }
 
     try {
+        patchMoonstoneTheme()
+    } catch (err) {
+        return handleError(cb)(err)
+    }
+
+    try {
         const filePath = 'src/views/DeveloperPanel.js'
         /** @type {String} */
         let fileContent = fs.readFileSync(filePath, 'utf-8')
@@ -136,6 +142,7 @@ var _increment = function increment(state) {  // crunchypatch
         exec('npx which enact', { encoding: 'utf-8' }, (err, cliPath) => {
             if (err) { throw err }
             cliPath = cliPath.split('/').slice(0, -2).join('/') + '/lib/node_modules/@enact/cli'
+            if (!fs.existsSync(`${cliPath}/package.json`)) { return }  // enact cli not installed globally
             const packageContent = JSON.parse(fs.readFileSync(`${cliPath}/package.json`, 'utf8'))
             if (packageContent.version === '7.2.1') {
                 /** @type {String} */
@@ -157,6 +164,176 @@ var _increment = function increment(state) {  // crunchypatch
     }
 
     cb()
+}
+
+/** rules added at the end of moonstone's own CSS modules, so they can use its local class names */
+const APPEND_CSS = {
+    'VideoPlayer/VideoPlayer.module.css': `
+.videoPlayer .fullscreen .bottom::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -2.5rem;
+  right: -2.5rem;
+  bottom: -1.25rem;
+  height: 23rem;
+  background: linear-gradient(rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.42) 40%, rgba(0, 0, 0, 0.8) 100%);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 400ms ease;
+  will-change: opacity;
+}
+.videoPlayer .fullscreen .bottom.hidden::before {
+  opacity: 0;
+}
+.videoPlayer .fullscreen .bottom .infoFrame .titleFrame .title {
+  font-weight: 600;
+  font-size: 1.75rem;
+  letter-spacing: -0.01em;
+}
+.videoPlayer .fullscreen .bottom .sliderFrame .bar,
+.videoPlayer .fullscreen .bottom .sliderFrame .fill,
+.videoPlayer .fullscreen .bottom .sliderFrame .load {
+  border-radius: 40rem;
+}`,
+    'ContextualPopupDecorator/ContextualPopup.module.css': `
+.contextualPopup:global(.moonstone) {
+  filter: drop-shadow(0 0.5rem 1.25rem rgba(0, 0, 0, 0.55));
+}
+.contextualPopup:global(.moonstone) .container {
+  background-color: #1f1f24;
+  border-color: rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  padding: 0.5rem;
+}
+.contextualPopup:global(.moonstone) .arrow .arrowBorder {
+  fill: rgba(255, 255, 255, 0.08);
+}
+.contextualPopup:global(.moonstone) .arrow .arrowFill {
+  fill: #1f1f24;
+}`,
+    'Popup/Popup.module.css': `
+.popup:global(.moonstone) {
+  background-color: rgba(28, 28, 33, 0.97);
+  border-radius: 1.25rem 1.25rem 0 0;
+}`,
+    'Notification/Notification.module.css': `
+.notification {
+  border-radius: 1.25rem;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}`,
+    'Input/Input.module.css': `
+.decorator:global(.moonstone) {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #f5f5f7;
+  border-radius: 0.5rem;
+}
+.decorator:global(.moonstone) .input::-webkit-input-placeholder {
+  color: rgba(235, 235, 245, 0.5);
+}`,
+    'MoonstoneDecorator/MoonstoneDecorator.module.css': `
+:global(.spotlight-input-key) :global(.moonstone) :global(.spottable):not(:global(.cr-own)):focus,
+:global(.spotlight-input-mouse) :global(.moonstone) :global(.spottable):not(:global(.cr-own)):focus {
+  border-radius: 0.5rem;
+}`,
+    'Panels/Header.module.css': `
+.header .title {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}`,
+    'Dialog/Dialog.module.css': `
+.dialog:global(.moonstone) .titleWrapper {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}`,
+}
+
+/**
+ * Re-skin moonstone at build time: the app's own components draw the new look, but every moonstone widget left
+ * (inputs, pickers, popups, the video player) picks up the same font and white focus with dark text. Moonstone ships
+ * compiled CSS, so the colours are rewritten there; its LESS vars only reach the app's own LESS files.
+ */
+function patchMoonstoneTheme() {
+    // every replacement below leaves text it no longer matches, so running it again changes nothing
+    const moonDir = './node_modules/@enact/moonstone'
+    // popups and contextual menus default to moonstone's light skin: same dark glass as the rest of the app
+    for (const file of ['ContextualPopupDecorator/ContextualPopup.js', 'Popup/Popup.js']) {
+        const filePath = path.join(moonDir, file)
+        const fileContent = fs.readFileSync(filePath, 'utf-8')
+        fs.writeFileSync(filePath, fileContent.replace("defaultSkin: 'light'", "defaultSkin: 'dark'"), 'utf-8')
+    }
+    const cssFiles = fs.readdirSync(moonDir, { recursive: true })
+        .filter(file => file.endsWith('.css') && !file.includes('node_modules'))
+    for (const file of cssFiles) {
+        const filePath = path.join(moonDir, file)
+        /** @type {String} */
+        let fileContent = fs.readFileSync(filePath, 'utf-8')
+        fileContent = fileContent
+            .replace(/font-family: "Moonstone";/g, 'font-family: "CR Inter", "Moonstone";')
+            .replace(/font-family: "MuseoSans";/g, 'font-family: "CR Inter", "MuseoSans";')
+            .replace(/#cf0652/gi, '#f5f5f7')
+            .replace(/#f93881/gi, '#ff5e00')
+            .replace(/rgba\(207, 6, 82, /g, 'rgba(245, 245, 247, ')
+            .replace(/rgba\(58, 2, 23, /g, 'rgba(255, 255, 255, ')
+        fileContent = fileContent.replace(/([^{}]+)\{([^{}]*)\}/g, (block, selector, body) => {
+            // the focus fill is white now: text and icons on it turn dark
+            if (selector.includes(':focus') || selector.includes(':active')) {
+                body = body.replace(/(^|[;\s])color: (#fff|#ffffff|white);/gi, '$1color: #0b0b0e;')
+            }
+            // the app's SF Symbols font ("CR Icons", src/components/ui/Icons.js) covers LG's icon code points first
+            if (!selector.includes('@font-face')) {
+                body = body.replace(/font-family: "Moonstone Icons";/g, 'font-family: "CR Icons", "Moonstone Icons";')
+            }
+            return `${selector}{${body}}`
+        })
+        if (/(Button|Dropdown)\.module\.css$/.test(file) && !file.includes('IconButton')) {
+            fileContent = fileContent.replace(/border-radius: 0\.125rem;/g, 'border-radius: 40rem;')  // pills
+        } else if (file.endsWith('Input.module.css')) {
+            fileContent = fileContent.replace(/border-radius: 0\.125rem;/g, 'border-radius: 0.5rem;')
+        }
+        if (APPEND_CSS[file] && !fileContent.includes('/* crunchytheme */')) {
+            fileContent += `\n/* crunchytheme */\n${APPEND_CSS[file]}\n`
+        }
+        if (file.endsWith('MoonstoneDecorator.module.css')) {
+            // the skin paints every focused spottable; the app's own components (class cr-own) draw their focus
+            fileContent = fileContent
+                .replace(/:global\(\.spottable\):focus/g, ':global(.spottable):not(:global(.cr-own)):focus')
+                .replace(/:global\(\.spottable\):active/g, ':global(.spottable):not(:global(.cr-own)):active')
+        }
+        fs.writeFileSync(filePath, fileContent, 'utf-8')
+    }
+
+    const replaceVars = (filePath, vars) => {
+        /** @type {String} */
+        let fileContent = fs.readFileSync(filePath, 'utf-8')
+        if (fileContent.includes('crunchytheme')) { return }
+        for (const [name, value] of Object.entries(vars)) {
+            const regex = new RegExp(`^(@${name}:\\s*)[^;]*;`, 'm')
+            if (!regex.test(fileContent)) {
+                throw new Error(`moonstone var ${name} not found in ${filePath}`)
+            }
+            fileContent = fileContent.replace(regex, `$1${value}; // crunchytheme`)
+        }
+        fs.writeFileSync(filePath, fileContent, 'utf-8')
+    }
+    replaceVars('./node_modules/@enact/moonstone/styles/colors.less', {
+        'moon-accent': '#f5f5f7',
+        'moon-bg-color': '#0b0b0e',
+        'moon-text-color': '#d1d1d6',
+        'moon-spotlight-text-color': '#0b0b0e',
+        'moon-active-spotlight-border-color': '#8e8e93',
+        'moon-button-text-color': '#f5f5f7',
+        'moon-button-bg-color': '#2c2c31',
+        'moon-progress-bar-fill-bg-color': '#ff5e00',
+    })
+    const font = '"CR Inter", "Moonstone"'
+    replaceVars('./node_modules/@enact/moonstone/styles/variables.less', {
+        'moon-font-family': font,
+        'moon-font-family-light': font,
+        'moon-font-family-small': font,
+        'moon-font-family-bold': font,
+        'moon-alt-font-family': font,
+        'moon-button-border-radius': '999px',
+    })
 }
 
 function copyIn18(cb) {

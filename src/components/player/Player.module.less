@@ -1,0 +1,24 @@
+@import (reference) '../../theme/tokens.less';
+
+// "Skip intro": big and bright, so it reads from the sofa that it can be skipped
+.skip {
+	position: absolute;
+	right: @cr-pad;
+	height: 84px !important;
+	padding: 0 44px !important;
+	border-radius: 999px;
+	background: rgba(245, 245, 247, 0.92) !important;
+	color: @cr-focus-text !important;
+	font-size: 30px !important;
+	font-weight: 700 !important;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+
+	svg {
+		font-size: 32px !important;
+	}
+
+	&:focus {
+		background: #fff !important;
+		transform: scale(1.08) !important;
+	}
+}

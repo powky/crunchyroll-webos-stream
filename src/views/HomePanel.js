@@ -1,13 +1,13 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import { Row, Cell, Column } from '@enact/ui/Layout'
 import { Panel } from '@enact/moonstone/Panels'
 import Spinner from '@enact/moonstone/Spinner'
+import classNames from 'classnames'
 
-import { useRecoilValue, useRecoilState, useSetRecoilState } from 'recoil'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
 
-import { currentProfileState, categoriesState, homeViewReadyState } from '../recoilConfig'
-import HomeToolbar, { FloatingHomeToolbar } from '../components/home/Toolbar'
+import { currentProfileState, categoriesState, homeViewReadyState, uiLanguageState } from '../recoilConfig'
+import TopNav from '../components/home/TopNav'
 import HomeFeed from '../components/home/Feed'
 import MusicBrowse from '../components/music/Music'
 import ContentGrid from '../components/grid/ContentGrid'
@@ -21,9 +21,34 @@ import { $L } from '../hooks/language'
 import { useResetHomeState } from '../hooks/navigate'
 import { useHomeFeedWorker } from '../hooks/homefeedWorker'
 import { useViewBackup } from '../hooks/viewBackup'
+import css from './HomePanel.module.less'
 
 
 const ActivityViews = ({ index, children }) => (children[index])
+
+/**
+ * Puts "Continue Watching" first or second (setting homeFirst). Rows get their new position as `index`, and the
+ * feed a different id per order, because rows are cached and restored by feed id and index.
+ * @param {{id: Number, items: Array<Object>}} homeFeed
+ * @param {'suggestions'|'continue'} homeFirst
+ * @returns {{id: Number, items: Array<Object>}}
+ */
+const orderHomeFeed = (homeFeed, homeFirst) => {
+    const items = homeFeed.items || []
+    const historyIndex = items.findIndex(item => item.type === 'HistoryCollection' || item.response_type === 'history')
+    if (historyIndex < 0) {
+        return homeFeed
+    }
+    const target = homeFirst === 'continue' ? 0 : Math.min(1, items.length - 1)
+    const reordered = items.slice()
+    const [history] = reordered.splice(historyIndex, 1)
+    reordered.splice(target, 0, history)
+    return {
+        ...homeFeed,
+        id: homeFeed.id + (homeFirst === 'continue' ? 1 : 2),
+        items: reordered.map((item, index) => ({ ...item, index })),
+    }
+}
 
 const HomePanel = (props) => {
     const { viewBackup, viewBackupRef } = useViewBackup('homePanel')
@@ -31,10 +56,8 @@ const HomePanel = (props) => {
     const profile = useRecoilValue(currentProfileState)
     /** @type {[Number, Function]} */
     const [currentActivity, setCurrentActivity] = useState(viewBackup?.currentActivity || 0)
-    /** @type {[Array<Object>, Function]} */
-    const [showFullToolbar, setShowFullToolbar] = useState(false)
-    /** @type {[Boolean, Function]} */
-    const [homeViewReady, setHomeViewReady] = useRecoilState(homeViewReadyState)
+    /** @type {Function} */
+    const setHomeViewReady = useSetRecoilState(homeViewReadyState)
     /** @type {Function} */
     const setCategories = useSetRecoilState(categoriesState)
     /** @type {[Boolean, Function]}  */
@@ -49,6 +72,8 @@ const HomePanel = (props) => {
     const resetHomeState = useResetHomeState()
     const processHomeFeed = useHomeFeedWorker()
 
+    /** @type {String} the labels follow the app language setting */
+    const language = useRecoilValue(uiLanguageState)
     /** @type {Array<{key: String, icon: String, label: String}>} */
     const toolbarList = useMemo(() => [
         { key: 'home', icon: 'home', label: $L('Home') },
@@ -61,30 +86,16 @@ const HomePanel = (props) => {
         { key: 'config', icon: 'gear', label: $L('Configuration') },
         { key: 'info', icon: 'info', label: $L('About Me?') },
         { key: 'close', icon: 'closex', label: $L('Close') },
-    ], [])
-
-    /** @type {Function} */
-    const hideShowFullToolbar = useCallback(() => {
-        setShowFullToolbar(false)
-    }, [setShowFullToolbar])
+    ], [language]) // eslint-disable-line react-hooks/exhaustive-deps
 
     /** @type {Function} */
     const setActivity = useCallback((ev) => {
-        setShowFullToolbar(false)
         const tmpIndex = ev ? parseInt(ev.currentTarget.dataset.index) : 0
         setCurrentActivity(tmpIndex)
         if (tmpIndex !== currentActivity) {
             resetHomeState()
         }
-    }, [setCurrentActivity, setShowFullToolbar, currentActivity, resetHomeState])
-
-    /** @type {Function} */
-    const showToolbar = useCallback((ev) => {
-        if (homeViewReady) {
-            ev.target.blur()
-            setShowFullToolbar(true)
-        }
-    }, [setShowFullToolbar, homeViewReady])
+    }, [setCurrentActivity, currentActivity, resetHomeState])
 
     useEffect(() => {
         const loadFeed = async () => {
@@ -134,61 +145,70 @@ const HomePanel = (props) => {
         }
     }, [setHomeViewReady])
 
+    /** @type {{id: Number, items: Array<Object>}} */
+    const orderedFeed = useMemo(
+        () => orderHomeFeed(homeFeed, (api.config.getAppConfig() || {}).homeFirst),
+        [homeFeed]
+    )
+
     /** backup all state to restore later */
     viewBackupRef.current = { currentActivity }
 
     return (
-        <Panel {...props}>
-            <Row style={{ height: '100%' }}>
-                <Cell shrink>
-                    <HomeToolbar toolbarList={toolbarList}
-                        currentIndex={currentActivity}
-                        onClick={setActivity}
-                        onFocus={showToolbar}
-                        hideText />
-                </Cell>
-                <Cell grow>
-                    {loading &&
-                        <Column align='center center'>
-                            <Spinner />
-                        </Column>
-                    }
-                    {!loading &&
-                        <ActivityViews index={currentActivity}>
-                            <HomeFeed profile={profile}
-                                homeFeed={homeFeed}
-                                feedType='home' />
-                            <Simulcast profile={profile}
-                                title={toolbarList[currentActivity].label} />
-                            <ContentGrid profile={profile}
-                                contentKey='home-search'
-                                title={toolbarList[currentActivity].label} />
-                            <ContentGrid profile={profile}
-                                contentKey='home-series'
-                                contentType='series'
-                                title={toolbarList[currentActivity].label} />
-                            <ContentGrid profile={profile}
-                                contentKey='home-movies'
-                                contentType='movie_listing'
-                                title={toolbarList[currentActivity].label} />
-                            <MusicBrowse profile={profile}
-                                title={toolbarList[currentActivity].label}
-                                musicFeed={musicFeed} />
-                            <Watchlist profile={profile} />
-                            <AppConfigPanel noButtons />
-                            <ContactMePanel noAcceptBtn />
-                            <ConfirmExitPanel onCancel={setActivity} />
-                        </ActivityViews>
-                    }
-                </Cell>
-            </Row>
-            <FloatingHomeToolbar
-                open={showFullToolbar}
+        <Panel {...props} className={classNames(props.className, css.homePanel)}>
+            {loading &&
+                <div className={css.loading}>
+                    <Spinner />
+                </div>
+            }
+            {!loading &&
+                <ActivityViews index={currentActivity}>
+                    <HomeFeed profile={profile}
+                        homeFeed={orderedFeed}
+                        feedType='home' />
+                    <div className={css.page}>
+                        <Simulcast profile={profile}
+                            title={toolbarList[currentActivity].label} />
+                    </div>
+                    <div className={css.page}>
+                        <ContentGrid profile={profile}
+                            contentKey='home-search'
+                            title={toolbarList[currentActivity].label} />
+                    </div>
+                    <div className={css.page}>
+                        <ContentGrid profile={profile}
+                            contentKey='home-series'
+                            contentType='series'
+                            title={toolbarList[currentActivity].label} />
+                    </div>
+                    <div className={css.page}>
+                        <ContentGrid profile={profile}
+                            contentKey='home-movies'
+                            contentType='movie_listing'
+                            title={toolbarList[currentActivity].label} />
+                    </div>
+                    <MusicBrowse profile={profile}
+                        title={toolbarList[currentActivity].label}
+                        musicFeed={musicFeed} />
+                    <div className={css.page}>
+                        <Watchlist profile={profile} />
+                    </div>
+                    <div className={css.page}>
+                        <AppConfigPanel noButtons />
+                    </div>
+                    <div className={css.page}>
+                        <ContactMePanel noAcceptBtn />
+                    </div>
+                    <div className={css.page}>
+                        <ConfirmExitPanel onCancel={setActivity} />
+                    </div>
+                </ActivityViews>
+            }
+            <TopNav
                 toolbarList={toolbarList}
                 currentIndex={currentActivity}
                 onClick={setActivity}
-                onLeave={hideShowFullToolbar}
-            />
+                profile={profile} />
         </Panel>
     )
 }

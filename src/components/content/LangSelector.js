@@ -1,12 +1,10 @@
 
 import { useEffect, useState, useMemo } from 'react'
-import { Row, Cell } from '@enact/ui/Layout'
 import PropTypes from 'prop-types'
 
 import { useSetRecoilState } from 'recoil'
 
 import SelectLanguage from '../SelectLanguage'
-import { ContentHeader } from '../home/ContentBanner'
 import Field from '../Field'
 import { currentProfileState } from '../../recoilConfig'
 import { useMapLang, $L } from '../../hooks/language'
@@ -57,11 +55,9 @@ const LangSelector = ({ profile, content, ...rest }) => {
     }, [mapLang, audio_locales, subtitle_locales])
 
     return (
-        <Row {...rest}>
-            <Cell size="49%">
-                <ContentHeader content={content} />
+        <div className={css.langSelector} {...rest}>
                 {subtitleLangList && subtitleLangList.length > 0 && (
-                    <Field title={$L('Subtitle')} className={css.firstData}>
+                    <Field title={$L('Subtitle')}>
                         <SelectLanguage
                             languages={subtitleLangList}
                             save={saveSubs}
@@ -69,15 +65,14 @@ const LangSelector = ({ profile, content, ...rest }) => {
                     </Field>
                 )}
                 {audioLangList && audioLangList.length > 0 && (
-                    <Field title={$L('Audio')} className={css.firstData}>
+                    <Field title={$L('Audio')}>
                         <SelectLanguage
                             languages={audioLangList}
                             save={saveAudio}
                             value={profile.preferred_content_audio_language} />
                     </Field>
                 )}
-            </Cell>
-        </Row>
+        </div>
     )
 }
 

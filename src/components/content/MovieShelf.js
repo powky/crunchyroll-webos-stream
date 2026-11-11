@@ -1,25 +1,24 @@
-
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { Row, Cell, Column } from '@enact/ui/Layout'
-
 import PropTypes from 'prop-types'
 
+import EpisodeShelf from './EpisodeShelf'
+import { $L } from '../../hooks/language'
 import { useBackVideoIndex } from '../../hooks/backVideoIndex'
 import { useViewBackup } from '../../hooks/viewBackup'
-import { ContentHeader } from '../home/ContentBanner'
-import SeasonsList from './SeasonsList'
-import EpisodesList from './EpisodesList'
 import api from '../../api'
 import { getIsPremium } from '../../utils'
+import css from './ContentDetail.module.less'
 
 
 /**
+ * The movies of a movie listing, in a row
  * @param {Object} obj
  * @param {import('crunchyroll-js-api').Types.Profile} obj.profile
  * @param {{content: Object, setContent: Function}} obj.contentState
  * @param {Boolean} obj.isPremium account is premium?
+ * @param {Boolean} [obj.autoFocus] focus the movie coming back from the player
  */
-const Movies = ({ profile, contentState, isPremium, ...rest }) => {
+const MovieShelf = ({ profile, contentState, isPremium, autoFocus }) => {
     const { content: movieListing, setContent: setMovieListing } = contentState
     const { viewBackup, viewBackupRef } = useViewBackup(`content-movies-${movieListing.id}`)
     /** @type {[Array<Object>, Function]} */
@@ -44,7 +43,7 @@ const Movies = ({ profile, contentState, isPremium, ...rest }) => {
         if (movies && movies.length) {
             /** backup all state to restore later */
             viewBackupRef.current = { listingIndex }
-            setMovieListing(movies[index])
+            setMovieListing(movies[index], 'episodes')
         }
     }, [listingIndex, movies, setMovieListing, viewBackupRef])
 
@@ -90,45 +89,35 @@ const Movies = ({ profile, contentState, isPremium, ...rest }) => {
             if (lastIndex == null) {
                 lastIndex = listingsTmp.length ? 0 : null
             } else {
-                lastIndex = Math.min(lastIndex, listingsTmp.length)
+                lastIndex = Math.min(lastIndex, listingsTmp.length - 1)
             }
             return lastIndex
         })
     }, [profile, movieListing])
 
     return (
-        <Row align='start space-between' {...rest}>
-            <Cell size="49%">
-                <Column>
-                    <Cell shrink>
-                        <ContentHeader content={movieListing} />
-                    </Cell>
-                    <Cell>
-                        <SeasonsList
-                            seasons={listings}
-                            selectSeason={setListingIndex}
-                            seasonIndex={listingIndex} />
-                    </Cell>
-                </Column>
-            </Cell>
-            <Cell size="49%">
-                <EpisodesList
-                    key={listings?.[listingIndex]?.id ? `movies-${listings[listingIndex].id}` : undefined}
-                    episodes={movies}
-                    episodeIndex={movieIndex}
-                    selectEpisode={setContent} />
-            </Cell>
-        </Row>
+        <div className={css.seasonShelf}>
+            <div className={css.shelfHead}>
+                <h2 className={css.shelfTitle}>{$L('Movies')}</h2>
+            </div>
+            <EpisodeShelf
+                key={listings?.[listingIndex]?.id ? `movies-${listings[listingIndex].id}` : undefined}
+                episodes={movies}
+                episodeIndex={movieIndex}
+                selectEpisode={setContent}
+                autoFocus={autoFocus} />
+        </div>
     )
 }
 
-Movies.propTypes = {
+MovieShelf.propTypes = {
     profile: PropTypes.object.isRequired,
     contentState: PropTypes.shape({
         content: PropTypes.object.isRequired,
         setContent: PropTypes.func.isRequired,
     }).isRequired,
     isPremium: PropTypes.bool.isRequired,
+    autoFocus: PropTypes.bool,
 }
 
-export default Movies
+export default MovieShelf

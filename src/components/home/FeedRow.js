@@ -1,8 +1,5 @@
-
 import { useRef, useState, useEffect, useMemo, useCallback } from 'react'
 import ri from '@enact/ui/resolution'
-import Heading from '@enact/moonstone/Heading'
-import Image from '@enact/moonstone/Image'
 import Spinner from '@enact/moonstone/Spinner'
 import PropTypes from 'prop-types'
 
@@ -11,69 +8,91 @@ import { useSetRecoilState, useRecoilValue } from 'recoil'
 import { homeViewReadyState, isPremiumState } from '../../recoilConfig'
 import api from '../../api'
 import VirtualListNested from '../../patch/VirtualListNested'
-import useGetImagePerResolution from '../../hooks/getImagePerResolution'
+import Card, { CARD_LIFT } from '../ui/Card'
+import { pickImage } from '../ui/images'
+import { getEpisodeLabel, getMetaParts } from '../ui/HeroInfo'
 import { useNavigateContent } from '../../hooks/navigate'
 import { processItemFeed } from '../../hooks/homefeedWorker'
-import withNavigable from '../../hooks/navigable'
 import { $L } from '../../hooks/language'
-import { formatDurationMs, getDuration, getIsPremium, isPlayable } from '../../utils'
+import { getDuration, getIsPremium, isPlayable } from '../../utils'
 import css from './FeedRow.module.less'
-import globalCss from '../Share.module.less'
 import { DEV_FAST_SELECT, DEV_CONTENT_TYPE } from '../../const'
 
-const NavigableDiv = withNavigable('div', '')
 
+/** artwork width; each cell adds the card's focus margin (see Card's @lift) on both sides */
+export const CARD_WIDTH = 384
+export const CELL_WIDTH = CARD_WIDTH + 2 * CARD_LIFT
+/** row title + card + two lines of text: the shelves show exactly one */
+export const ROW_HEIGHT = 400
 
-export const Poster = ({ item, image, itemSize, isPremium, ...rest }) => {
-    rest.style.width = itemSize
-    let progress = 0, duration = undefined, showPremium = false
-
-    if (isPlayable(item.type)) {
-        duration = getDuration(item)
-        if (duration !== undefined && item.playhead !== undefined) {
-            if (typeof item.playhead === 'number') {
+/**
+ * Watched percentage of a playable item
+ * @param {Object} item
+ * @returns {Number}
+ */
+export const getProgress = (item) => {
+    let progress = 0
+    if (item && isPlayable(item.type) && item.playhead !== undefined && item.playhead !== null) {
+        const duration = getDuration(item)
+        if (typeof item.playhead === 'number') {
+            if (duration) {
                 progress = item.playhead / (duration / 1000) * 100
-            } else {
-                progress = item.playhead.progress
             }
-        }
-        if (!isPremium) {
-            showPremium = getIsPremium(item)
+        } else {
+            progress = item.playhead.progress || 0
         }
     }
+    return Math.max(0, Math.min(100, progress))
+}
 
+/**
+ * Second line under a card
+ * @param {Object} item
+ * @returns {String}
+ */
+export const getCardSubtitle = (item) => {
+    let out = ''
+    if (item.type === 'episode') {
+        out = getEpisodeLabel(item)
+    } else if (isPlayable(item.type)) {
+        out = item.subTitle || ''
+        const duration = getDuration(item)
+        if (duration) {
+            out = out ? `${out} · ${Math.round(duration / 60000)} min` : `${Math.round(duration / 60000)} min`
+        }
+    } else if (item.type === 'musicArtist') {
+        out = $L('Artist')
+    } else {
+        out = getMetaParts(item).parts.slice(0, 2).join(' · ')
+    }
+    return out
+}
+
+/**
+ * A poster card for any feed item
+ * @param {Object} obj
+ * @param {Object} obj.item
+ * @param {Number} obj.itemSize cell width
+ * @param {Boolean} obj.isPremium account is premium
+ */
+export const Poster = ({ item, itemSize, isPremium, style, ...rest }) => {
+    const showPremium = isPlayable(item.type) && !isPremium && getIsPremium(item)
+    const newStyle = Object.assign({}, style, { width: itemSize })
     return (
-        <NavigableDiv {...rest}>
-            <Image src={image.source} sizing='none' style={image.size}>
-                {isPlayable(item.type) &&
-                    <div className={globalCss.progress} style={{ bottom: '1.8rem' }}>
-                        <div style={{ width: `${progress}%` }} />
-                    </div>
-                }
-            </Image>
-            {isPlayable(item.type) && <div className={css.playButton} />}
-            {isPlayable(item.type) &&
-                <div className={css.contentTime}>{formatDurationMs(duration)}</div>
-            }
-            {showPremium && <div className={globalCss.contenPremium}>{$L('Premium')}</div>}
-            <Heading size="small" marqueeOn='hover' >
-                {item.name}
-            </Heading>
-        </NavigableDiv >
+        <Card {...rest}
+            style={newStyle}
+            image={pickImage(item, { mode: item.type === 'episode' ? 'thumb' : 'wide', minWidth: 760 })}
+            width={CARD_WIDTH}
+            title={item.title || item.name}
+            subtitle={getCardSubtitle(item)}
+            progress={getProgress(item)}
+            badge={showPremium ? $L('Premium') : null} />
     )
 }
 
-const HomeFeedItem = ({ feed, index, itemHeight, ...rest }) => {
-    const feedItem = feed.items[index]
-    const getImagePerResolution = useGetImagePerResolution()
-    const margin = ri.scale(20)
-    const image = getImagePerResolution({ height: itemHeight, width: rest.itemSize - margin, content: feedItem })
-    return (
-        <Poster item={feedItem}
-            image={image}
-            {...rest} />
-    )
-}
+const HomeFeedItem = ({ feed, index, ...rest }) => (
+    <Poster item={feed.items[index]} {...rest} />
+)
 
 /**
  * @typedef RowInfo
@@ -103,12 +122,8 @@ const HomeFeedRow = ({ profile, cellId, itemSize, feedRow, rowInfo, style, class
     const scrollToRef = useRef(null)
     /** @type {{current: {rowIndex: Number, columnIndex: Number}}} */
     const rowIndexRef = useRef(viewBackup || {})
-    /** @type {{current: HTMLElement}} */
-    const compRef = useRef(null)
     /** @type {Number} */
-    const itemHeight = useMemo(() => itemSize - ri.scale(42), [itemSize])
-    /** @type {Number} */
-    const itemWidth = ri.scale(320)
+    const itemWidth = ri.scale(CELL_WIDTH)
     /** @type {Function} */
     const setHomeViewReady = useSetRecoilState(homeViewReadyState)
     /** @type {Boolean} */
@@ -117,8 +132,9 @@ const HomeFeedRow = ({ profile, cellId, itemSize, feedRow, rowInfo, style, class
     const getScrollTo = useCallback((scrollTo) => { scrollToRef.current = scrollTo }, [])
     /** @type {Function} */
     const selectElement = useCallback((ev) => {
+        const index = parseInt(ev.target.dataset.index)
         if (feedData.id !== 'fake_item') {
-            setContent(feedData.items[parseInt(ev.target.dataset.index)], feedRow.index)
+            setContent(feedData.items[index], feedRow.index)
         } else {
             setContent(null, feedRow.index)
         }
@@ -219,12 +235,10 @@ const HomeFeedRow = ({ profile, cellId, itemSize, feedRow, rowInfo, style, class
 
     return (
         <div className={newClassName} style={newStyle} {...rest}>
-            {!feedData && <Spinner />}
+            {!feedData && <div className={css.loading}><Spinner size='small' /></div>}
             {feedData && <>
-                <Heading size="title" spacing="small" componentRef={compRef} marqueeOn='hover'>
-                    {feedData.title}
-                </Heading>
-                <div style={{ height: `${itemHeight}px` }}>
+                <h2 className={css.rowTitle}>{feedData.title}</h2>
+                <div className={css.rowList}>
                     <VirtualListNested
                         dataSize={feedData.items.length}
                         itemRenderer={HomeFeedItem}
@@ -235,7 +249,6 @@ const HomeFeedRow = ({ profile, cellId, itemSize, feedRow, rowInfo, style, class
                             feed: feedData,
                             onFocus: selectElement,
                             onClick: setLocalContent,
-                            itemHeight,
                             isPremium,
                         }}
                         direction='horizontal'

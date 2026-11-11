@@ -1,0 +1,123 @@
+@import (reference) '../../theme/tokens.less';
+
+// room around the artwork for the focus lift and ring, so lists don't clip them
+@lift: @cr-lift;
+
+.card {
+	position: relative;
+	box-sizing: border-box;
+	padding: @lift @lift 0;
+	outline: none;
+	cursor: pointer;
+}
+
+.art {
+	position: relative;
+	border-radius: @cr-radius;
+	overflow: hidden;
+	background: @cr-surface;
+	.cr-layer();
+	transition: transform 180ms @cr-ease;
+
+	img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+}
+
+.card:focus .art {
+	transform: scale(1.08);
+	box-shadow: 0 0 0 4px #fff;
+}
+
+.progress {
+	position: absolute;
+	left: 16px;
+	right: 16px;
+	bottom: 14px;
+	height: 6px;
+	border-radius: 3px;
+	background: rgba(255, 255, 255, 0.3);
+	overflow: hidden;
+
+	i {
+		display: block;
+		height: 100%;
+		background: @cr-accent;
+	}
+}
+
+.badge {
+	position: absolute;
+	top: 12px;
+	left: 12px;
+	padding: 3px 10px;
+	border-radius: 8px;
+	background: rgba(0, 0, 0, 0.66);
+	color: @cr-star;
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.duration {
+	position: absolute;
+	right: 14px;
+	bottom: 30px;
+	padding: 2px 8px;
+	border-radius: 6px;
+	background: rgba(0, 0, 0, 0.66);
+	color: @cr-text;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.watched {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, 0.62);
+	color: @cr-text;
+	font-size: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.title {
+	margin-top: 18px;
+	color: rgba(245, 245, 247, 0.92);
+	font-size: 22px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	.cr-ellipsis();
+
+	b {
+		margin-right: 10px;
+		color: @cr-faint;
+		font-weight: 600;
+	}
+}
+
+.card:focus .title {
+	color: #fff;
+}
+
+.subtitle {
+	margin-top: 5px;
+	color: @cr-faint;
+	font-size: 19px;
+	.cr-ellipsis();
+}
+
+.text {
+	margin-top: 6px;
+	color: @cr-faint;
+	font-size: 18px;
+	line-height: 1.4;
+	.cr-clamp(2);
+}

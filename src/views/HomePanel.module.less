@@ -1,0 +1,27 @@
+@import (reference) '../theme/tokens.less';
+
+// full-bleed: the home feed paints its artwork under the tab bar
+.homePanel {
+	padding: 0 !important;
+	background: @cr-bg;
+}
+
+.loading {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1920px;
+	height: 1080px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+// every other tab: below the bar, inside the safe margins
+.page {
+	position: absolute;
+	top: @cr-top;
+	left: (@cr-pad - @cr-lift);
+	right: (@cr-pad - @cr-lift);
+	bottom: 24px;
+}

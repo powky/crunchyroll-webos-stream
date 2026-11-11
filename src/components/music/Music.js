@@ -1,7 +1,5 @@
 
 import { useCallback, useState, useEffect, useMemo } from 'react'
-import { Column, Cell, Row } from '@enact/ui/Layout'
-import Heading from '@enact/moonstone/Heading'
 import Input from '@enact/moonstone/Input'
 import PropTypes from 'prop-types'
 
@@ -10,6 +8,7 @@ import HomeFeed from '../home/Feed'
 import ContentGridItems from '../grid/ContentGridItems'
 import api from '../../api'
 import useContentList from '../../hooks/contentList'
+import css from './Music.module.less'
 
 
 /**
@@ -97,39 +96,32 @@ const MusicBrowse = ({ profile, title, musicFeed, ...rest }) => {
     }, [profile, changeContentList, onFilter])
 
     return (
-        <Column style={{ width: '100%' }} {...rest}>
-            <Cell shrink>
-                <Row>
-                    <Cell shrink>
-                        <Heading>
-                            {title}
-                        </Heading>
-                    </Cell>
-                    <Cell shrink>
-                        <Input placeholder={$L('Search')}
-                            value={query}
-                            onChange={onSearch}
-                            iconAfter="search" />
-                    </Cell>
-                </Row>
-            </Cell>
-            <Cell grow style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
-                {query === '' &&
-                    <HomeFeed
-                        profile={profile}
-                        homeFeed={musicFeed}
-                        feedType='music' />
-                }
-                {query !== '' &&
+        <div className={css.music} {...rest}>
+            {query === '' &&
+                <HomeFeed
+                    className={css.feed}
+                    profile={profile}
+                    homeFeed={musicFeed}
+                    feedType='music' />
+            }
+            {query !== '' &&
+                <div className={css.results}>
                     <ContentGridItems
                         type='music'
                         contentList={contentList}
                         load={onLoad}
                         onSelect={setLocalContent}
                         autoScroll={autoScroll} />
-                }
-            </Cell>
-        </Column>
+                </div>
+            }
+            <div className={css.header}>
+                <h1 className={css.title}>{title}</h1>
+                <Input placeholder={$L('Search')}
+                    value={query}
+                    onChange={onSearch}
+                    iconAfter="search" />
+            </div>
+        </div>
     )
 }
 

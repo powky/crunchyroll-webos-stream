@@ -35,6 +35,18 @@ NANO079SNA   WebOS 5.5.0-1107
 86QNED866RE  WebOS 23
 ```
 
+## This fork: Apple TV style UI
+
+A redesign of the interface in the style of tvOS's Apple TV app, tuned for webOS 6 (Chrome 79, rendered at 2x):
+top tab bar, full-screen artwork with a hero for the focused show, one shelf of cards at a time, a show page with
+seasons and episodes under its buttons, tvOS-like settings (app language, home row order) and a darker, cleaner
+player overlay. API, recoil state, DRM/dash.js playback, subtitles and spotlight navigation are the original app's.
+
+- The moonstone widgets that remain are re-skinned at build time by `patchMoonstoneTheme` in `gulpfile.mjs`
+  (it runs on `npm install`; run `npx gulp clean-ilib` to apply it to an existing `node_modules`).
+- Icons: optional SF Symbols, generated locally — see `tools/sf-symbols/README.md`.
+- Font: [Inter](https://github.com/rsms/inter) (SIL Open Font License, `assets/fonts/Inter-OFL.txt`).
+
 ## How to run on local? (Linux)
 
 1) Install git, node and npm. I use node version v16.17.0 and npm version 8.15.0 (google it), example:

@@ -223,7 +223,8 @@ class VirtualListBase extends VirtualListSuperBase {
                 this.focusByIndexPatch(nextIndex, cellPosition, direction);
                 cbScrollTo({
                     index: nextIndex,
-                    stickTo: index < nextIndex ? 'end' : 'start',
+                    // the focused row always snaps to the top of the shelves, under the hero, both ways
+                    stickTo: 'start',
                     animate: !(isWrapped && wrap === 'noAnimation')
                 });
 

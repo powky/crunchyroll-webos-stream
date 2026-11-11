@@ -1,0 +1,65 @@
+@import (reference) '../../theme/tokens.less';
+
+.backdrop {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1920px;
+	height: 1080px;
+	overflow: hidden;
+	pointer-events: none;
+	z-index: 0;
+}
+
+// the artwork is 16:9 like the screen: plain fill, so the compositor can draw the decoded picture as it is
+.layer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: block;
+	width: 1920px;
+	height: 1080px;
+	opacity: 0;
+	will-change: opacity;
+
+	&.under {
+		opacity: 1;
+		z-index: 1;
+	}
+
+	&.on {
+		opacity: 1;
+		z-index: 2;
+		transition: opacity 400ms ease;
+	}
+}
+
+// fades over the picture: never changes, so it's rasterised once
+.shade {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1920px;
+	height: 1080px;
+	z-index: 3;
+	will-change: opacity;
+}
+
+// the hero text sits top left and the shelves below: dark from the left and towards the bottom
+.home .shade {
+	background:
+		linear-gradient(90deg, fade(@cr-bg, 92%) 0%, fade(@cr-bg, 72%) 32%, fade(@cr-bg, 15%) 62%, fade(@cr-bg, 0%) 80%),
+		linear-gradient(180deg, fade(@cr-bg, 55%) 0%, fade(@cr-bg, 0%) 18%, fade(@cr-bg, 0%) 40%, fade(@cr-bg, 86%) 60%, @cr-bg 76%);
+}
+
+.detail .shade {
+	background:
+		linear-gradient(90deg, fade(@cr-bg, 95%) 0%, fade(@cr-bg, 78%) 34%, fade(@cr-bg, 20%) 66%, fade(@cr-bg, 0%) 82%),
+		linear-gradient(180deg, fade(@cr-bg, 35%) 0%, fade(@cr-bg, 0%) 16%, fade(@cr-bg, 0%) 36%, fade(@cr-bg, 90%) 56%, @cr-bg 68%);
+}
+
+// behind lists and forms: the picture is only a tint
+.dim .shade {
+	background:
+		linear-gradient(180deg, fade(@cr-bg, 78%) 0%, fade(@cr-bg, 90%) 45%, @cr-bg 80%);
+}

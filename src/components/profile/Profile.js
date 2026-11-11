@@ -18,7 +18,7 @@ const ImageNavigable = withNavigable(Image, css.profileFocus)
  * @param {import('crunchyroll-js-api').Types.Profile} obj.profile
  * @param {Function} obj.onSelectProfile
  * @param {Function} obj.onEditProfile
- * @param {Boolean} [obj.isDefault] where the first key press lands (nothing is focused before)
+ * @param {Boolean} [obj.isDefault] the profile focused when the picker opens
  * @param {Object} obj.rest
  */
 const Profile = ({ profile, onSelectProfile, onEditProfile, isDefault, ...rest }) => {

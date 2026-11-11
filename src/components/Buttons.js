@@ -35,10 +35,11 @@ export const AppIconButton = ({ mode = 'short', onClick, tooltipText, icon, play
             </IconButton>
         )
     }
+    // no fill until focused, like the rest of the secondary buttons
     if (mode === 'full') {
-        return <PillButton icon={ICONS[icon] || icon} onClick={onClick} {...rest}>{tooltipText}</PillButton>
+        return <PillButton plain icon={ICONS[icon] || icon} onClick={onClick} {...rest}>{tooltipText}</PillButton>
     }
-    return <PillButton round icon={ICONS[icon] || icon} aria-label={tooltipText} onClick={onClick} {...rest} />
+    return <PillButton plain round icon={ICONS[icon] || icon} aria-label={tooltipText} onClick={onClick} {...rest} />
 }
 
 

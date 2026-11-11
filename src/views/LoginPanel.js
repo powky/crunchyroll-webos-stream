@@ -9,6 +9,7 @@ import { LoginWithEmail, LoginWithCode, LoginWithQR } from '../components/login/
 import { ContactMeBtn, AppConfigBtn } from '../components/Buttons'
 import PopupMessage from '../components/Popup'
 import PillButton from '../components/ui/PillButton'
+import ProfilesSkeleton from '../components/profile/ProfilesSkeleton'
 import logo from '../../assets/img/crunchyroll-logo.svg'
 import { autoLoginState, isPremiumState } from '../recoilConfig'
 import api from '../api'
@@ -16,6 +17,7 @@ import { $L } from '../hooks/language'
 import { useNavigate } from '../hooks/navigate'
 import logger from '../logger'
 import css from '../components/login/Login.module.less'
+import cssProfiles from '../components/profile/Profile.module.less'
 
 
 const ActivityViews = ({ index, children }) => children[index]
@@ -34,6 +36,8 @@ const LoginPanel = ({ ...rest }) => {
     const [deviceCode, setDeviceCode] = useState(null)
     /** @type {{current: import('crunchyroll-js-api').Types.DeviceCode}} */
     const deviceRef = useRef(null)
+    /** @type {[Boolean, Function]} a saved session is being checked: the profile picker's skeleton shows, not the form */
+    const [checking, setChecking] = useState(autoLogin)
 
     /** @type {Function} */
     const makeLogin = useCallback(async () => {
@@ -112,6 +116,35 @@ const LoginPanel = ({ ...rest }) => {
         return () => { deviceRef.current = null }
     }, [])
 
+    useEffect(() => {  // signed in before: straight on to the profiles; the login form only shows if that fails
+        let active = true
+        const checkSession = async () => {
+            try {
+                if (await api.auth.getSession()) {
+                    await makeLogin()
+                    return
+                }
+            } catch (error) {
+                logger.error(error)
+            }
+            if (active) {
+                setChecking(false)
+            }
+        }
+        if (checking) {
+            checkSession()
+        }
+        return () => { active = false }
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+    if (checking) {
+        return (
+            <Panel {...rest} className={classNames(rest.className, cssProfiles.profilesPanel)}>
+                <ProfilesSkeleton />
+            </Panel>
+        )
+    }
+
     return (
         <Panel {...rest} className={classNames(rest.className, css.loginPanel)}>
             <div className={css.corner}>
@@ -122,19 +155,18 @@ const LoginPanel = ({ ...rest }) => {
                 <img className={css.logo} src={logo} alt='Crunchyroll' />
                 <h1 className={css.title}>{$L('Login')}</h1>
                 <div className={css.segmented}>
-                    <PillButton small icon='mail' data-index='0' selected={currentIndex === 0} onClick={setView}>
+                    <PillButton small plain icon='mail' data-index='0' selected={currentIndex === 0} onClick={setView}>
                         {$L('Email')}
                     </PillButton>
-                    <PillButton small icon='key' data-index='1' selected={currentIndex === 1} onClick={setView}>
+                    <PillButton small plain icon='key' data-index='1' selected={currentIndex === 1} onClick={setView}>
                         {$L('Code')}
                     </PillButton>
-                    <PillButton small icon='qr' data-index='2' selected={currentIndex === 2} onClick={setView}>
+                    <PillButton small plain icon='qr' data-index='2' selected={currentIndex === 2} onClick={setView}>
                         {$L('QR code')}
                     </PillButton>
                 </div>
                 <ActivityViews index={currentIndex}>
                     <LoginWithEmail
-                        autoLogin={autoLogin}
                         makeLogin={makeLogin}
                         setErrorMessage={setErrorMessage}
                     />

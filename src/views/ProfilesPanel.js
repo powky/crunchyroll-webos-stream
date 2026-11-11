@@ -9,7 +9,7 @@ import { $L } from '../hooks/language'
 import { currentProfileState, homeViewReadyState } from '../recoilConfig'
 import Profile from '../components/profile/Profile'
 import PillButton from '../components/ui/PillButton'
-import { Bone, Skeleton } from '../components/ui/Skeleton'
+import ProfilesSkeleton from '../components/profile/ProfilesSkeleton'
 import css from '../components/profile/Profile.module.less'
 import { ContactMeBtn, LogoutBtn, AppConfigBtn } from '../components/Buttons'
 import api from '../api'
@@ -88,21 +88,17 @@ const ProfilesPanel = ({ ...rest }) => {
         api.account.getProfiles().then(setMultiProfile)
     }, [])
 
-    useEffect(() => {  // nothing is focused at first: the first key goes to the first profile (spotlight would pick by
-        // pointer position, the top-left corner)
-        const onKeyDown = (ev) => {
-            if (!Spotlight.getCurrent() && [13, 37, 38, 39, 40].includes(ev.keyCode)) {
+    useEffect(() => {  // the first profile starts focused (the panel's own autofocus would take the corner buttons)
+        if (multiProfile && multiProfile.profiles.length) {
+            const timer = setTimeout(() => {
                 const first = document.querySelector('[data-profile-id].spottable-default')
-                if (first) {
-                    ev.preventDefault()
-                    ev.stopPropagation()
+                if (first && !Spotlight.getCurrent()) {
                     Spotlight.focus(first)
                 }
-            }
+            }, 0)
+            return () => clearTimeout(timer)
         }
-        window.addEventListener('keydown', onKeyDown, true)
-        return () => window.removeEventListener('keydown', onKeyDown, true)
-    }, [])
+    }, [multiProfile])
 
     return (
         <Panel {...rest} autoFocus='none' className={classNames(rest.className, css.profilesPanel)}>
@@ -114,7 +110,6 @@ const ProfilesPanel = ({ ...rest }) => {
             {!loading && multiProfile && multiProfile.profiles.length ?
                 <div className={css.center}>
                     <h1 className={css.title}>{$L('Who will go on an adventure?')}</h1>
-                    {/* nothing is focused until a key is pressed: the first press lands on the first profile */}
                     <div className={classNames(css.profiles, { [css.many]: multiProfile.profiles.length > 3 })}>
                         {multiProfile.profiles.map((profile, i) =>
                             <Profile profile={profile} key={i}
@@ -125,24 +120,14 @@ const ProfilesPanel = ({ ...rest }) => {
                     </div>
                     <div className={css.footer}>
                         {multiProfile.profiles.length < multiProfile.tier_max_profiles &&
-                            <PillButton icon='plus' onClick={onCreateProfile}>
+                            <PillButton plain icon='plus' onClick={onCreateProfile}>
                                 {$L('Add')}
                             </PillButton>
                         }
                     </div>
                 </div>
                 :
-                <Skeleton className={css.center}>
-                    <Bone w={620} h={60} r={12} />
-                    <div className={css.profiles}>
-                        {[0, 1, 2].map(i => (
-                            <div key={i} className={css.profile}>
-                                <Bone w={300} h={300} r='50%' />
-                                <Bone w={120} h={28} r={8} style={{ marginTop: 30 }} />
-                            </div>
-                        ))}
-                    </div>
-                </Skeleton>
+                <ProfilesSkeleton />
             }
         </Panel>
     )

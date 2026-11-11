@@ -91,11 +91,10 @@ LoginWithQR.propTypes = {
 
 /**
  * @param {Object} obj
- * @param {Boolean} obj.autoLogin
  * @param {Function} obj.makeLogin
  * @param {Function} obj.setErrorMessage
  */
-export const LoginWithEmail = ({ autoLogin, makeLogin, setErrorMessage, ...rest }) => {
+export const LoginWithEmail = ({ makeLogin, setErrorMessage, ...rest }) => {
     /** @type {[String, Function]} */
     const [email, setEmail] = useState('')
     /** @type {[String, Function]} */
@@ -127,28 +126,17 @@ export const LoginWithEmail = ({ autoLogin, makeLogin, setErrorMessage, ...rest 
         setPassword(value)
     }, [setPassword, setErrorMessage])
 
-    useEffect(() => {
+    useEffect(() => {  // a saved session was already tried (LoginPanel): fill in the saved credentials, if any
         const loadData = async () => {
-            const setCredentiasl = async () => {
-                const credentials = await api.auth.getCredentials()
-                if (credentials) {
-                    setEmail(credentials.username)
-                    setPassword(credentials.password)
-                }
-                setLoading(false)
+            const credentials = await api.auth.getCredentials()
+            if (credentials) {
+                setEmail(credentials.username)
+                setPassword(credentials.password)
             }
-            if (autoLogin && await api.auth.getSession()) {
-                try {
-                    await makeLogin()
-                } catch (_e) {
-                    await setCredentiasl()
-                }
-            } else {
-                await setCredentiasl()
-            }
+            setLoading(false)
         }
         loadData()
-    }, [setEmail, setPassword, makeLogin, autoLogin, setLoading])
+    }, [setEmail, setPassword, setLoading])
 
     return (
         <Column className={css.loginForm} {...rest}>
@@ -196,7 +184,6 @@ export const LoginWithEmail = ({ autoLogin, makeLogin, setErrorMessage, ...rest 
 }
 
 LoginWithEmail.propTypes = {
-    autoLogin: PropTypes.bool.isRequired,
     makeLogin: PropTypes.func.isRequired,
     setErrorMessage: PropTypes.func.isRequired,
 }
